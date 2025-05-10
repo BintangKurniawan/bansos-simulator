@@ -177,6 +177,298 @@ void inputDataWarga(Wilayah &wilayah)
     }
 }
 
+void editDataWarga(Wilayah &wilayah)
+{
+    while (true)
+    {
+        system("cls");
+        cout << "====== EDIT DATA WARGA ======" << endl;
+
+        if (wilayah.rtList.empty())
+        {
+            cout << "Tidak ada RT yang tersedia. Silakan tambahkan RT terlebih dahulu." << endl;
+            return;
+        }
+
+        wilayah.tampilkanRt();
+        cout << "0. Kembali ke menu utama" << endl;
+        cout << "Pilih RT (nomor): ";
+        int pilihanRt;
+        cin >> pilihanRt;
+        cin.ignore();
+
+        if (pilihanRt == 0)
+            return;
+        if (pilihanRt < 1 || pilihanRt > wilayah.rtList.size())
+        {
+            cout << "RT tidak valid!" << endl;
+            system("pause");
+            continue;
+        }
+
+        RT &rtTerpilih = wilayah.rtList[pilihanRt - 1];
+        char editLagi;
+
+        wilayah.rtList[pilihanRt - 1].tampilkanWarga();
+        cout << "0. Kembali ke menu utama" << endl;
+        cout << "Pilih warga yang ingin diedit (nomor): ";
+        int pilihanWarga;
+        cin >> pilihanWarga;
+        cin.ignore();
+
+        if (pilihanWarga == 0)
+            return;
+        if (pilihanWarga < 1 || pilihanWarga > rtTerpilih.wargaList.size())
+        {
+            cout << "Warga tidak valid!" << endl;
+            system("pause");
+            continue;
+        }
+
+        Warga &wargaTerpilih = rtTerpilih.wargaList[pilihanWarga - 1];
+
+        do
+        {
+            system("cls");
+            cout << "RT " << rtTerpilih.nama << endl;
+            cout << "====== EDIT DATA WARGA ======" << endl;
+
+            cout << "Nama Warga: " << wargaTerpilih.nama << endl;
+            cout << "Alamat: " << wargaTerpilih.alamat << endl;
+            cout << "Kategori: " << wargaTerpilih.kategori << endl;
+
+            cout << "Pilih data yang ingin diedit:" << endl;
+            cout << "1. Nama" << endl;
+            cout << "2. Alamat" << endl;
+            cout << "3. Kategori" << endl;
+            cout << "Pilihan menu (1-3): ";
+            int pilihanMenu;
+            cin >> pilihanMenu;
+            cin.ignore();
+
+            if (cin.fail())
+            {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                cout << "Input tidak valid. Masukkan angka saja!" << endl;
+                system("pause");
+                continue;
+            }
+
+            switch (pilihanMenu)
+            {
+            case 1:
+                cout << "Masukkan nama baru: ";
+                getline(cin, wargaTerpilih.nama);
+                break;
+            case 2:
+                cout << "Masukkan alamat baru: ";
+                getline(cin, wargaTerpilih.alamat);
+                break;
+            case 3:
+                while (true)
+                {
+
+                    cout << "Masukkan kategori baru (Miskin, Lansia, atau Yatim): ";
+                    getline(cin, wargaTerpilih.kategori);
+
+                    string lowerKategori;
+                    for (char c : wargaTerpilih.kategori)
+                    {
+                        lowerKategori += tolower(c);
+                    }
+
+                    if (lowerKategori == "miskin" || lowerKategori == "lansia" || lowerKategori == "yatim")
+                    {
+                        if (!wargaTerpilih.kategori.empty())
+                        {
+                            wargaTerpilih.kategori[0] = toupper(wargaTerpilih.kategori[0]);
+                        }
+                        break;
+                    }
+
+                    else
+                    {
+                        cout << "Kategori harus Miskin, Lansia, atau Yatim!" << endl;
+                    }
+                }
+                break;
+            default:
+                cout << "Pilihan menu tidak valid!" << endl;
+                break;
+            }
+
+            cout << "Edit lagi? (Y/N): ";
+            cin >> editLagi;
+            cin.ignore();
+            editLagi = toupper(editLagi);
+        } while (editLagi == 'Y');
+
+        break;
+    }
+}
+
+void hapusDataWarga(Wilayah &wilayah)
+{
+    while (true)
+    {
+        system("cls");
+        cout << "====== HAPUS DATA WARGA ======" << endl;
+
+        if (wilayah.rtList.empty())
+        {
+            cout << "Tidak ada RT yang tersedia. Silakan tambahkan RT terlebih dahulu." << endl;
+            system("pause");
+            return;
+        }
+
+        wilayah.tampilkanRt();
+        cout << "0. Kembali ke menu utama" << endl;
+        cout << "Pilih RT (nomor): ";
+
+        int pilihanRt;
+        if (!(cin >> pilihanRt))
+        {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cout << "Input harus berupa angka!" << endl;
+            system("pause");
+            continue;
+        }
+        cin.ignore();
+
+        if (pilihanRt == 0)
+            return;
+        if (pilihanRt < 1 || pilihanRt > wilayah.rtList.size())
+        {
+            cout << "RT tidak valid!" << endl;
+            system("pause");
+            continue;
+        }
+
+        RT &rtTerpilih = wilayah.rtList[pilihanRt - 1];
+
+        if (rtTerpilih.wargaList.empty())
+        {
+            cout << "Tidak ada warga di RT " << rtTerpilih.nama << endl;
+            system("pause");
+            continue;
+        }
+
+        system("cls");
+        cout << "====== DAFTAR WARGA DI RT " << rtTerpilih.nama << " ======" << endl;
+        rtTerpilih.tampilkanWarga();
+        cout << "0. Kembali ke menu utama" << endl;
+        cout << "Pilih warga yang ingin dihapus (nomor): ";
+
+        int pilihanWarga;
+        if (!(cin >> pilihanWarga))
+        {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cout << "Input harus berupa angka!" << endl;
+            system("pause");
+            continue;
+        }
+        cin.ignore();
+
+        if (pilihanWarga == 0)
+            return;
+        if (pilihanWarga < 1 || pilihanWarga > rtTerpilih.wargaList.size())
+        {
+            cout << "Warga tidak valid!" << endl;
+            system("pause");
+            continue;
+        }
+
+        Warga &wargaTerpilih = rtTerpilih.wargaList[pilihanWarga - 1];
+        char konfirmasi;
+        do
+        {
+            system("cls");
+            cout << "====== KONFIRMASI PENGHAPUSAN ======" << endl;
+            cout << "RT: " << rtTerpilih.nama << endl;
+            cout << "Nama Warga: " << wargaTerpilih.nama << endl;
+            cout << "Alamat: " << wargaTerpilih.alamat << endl;
+            cout << "Kategori: " << wargaTerpilih.kategori << endl
+                 << endl;
+
+            cout << "Apakah Anda yakin ingin menghapus data ini? (Y/N): ";
+            cin >> konfirmasi;
+            cin.ignore();
+            konfirmasi = toupper(konfirmasi);
+
+            if (konfirmasi == 'N')
+                return;
+        } while (konfirmasi != 'Y' && konfirmasi != 'N');
+
+        if (konfirmasi == 'Y')
+        {
+            rtTerpilih.wargaList.erase(rtTerpilih.wargaList.begin() + pilihanWarga - 1);
+            cout << "Data warga berhasil dihapus." << endl;
+            return;
+        }
+    }
+}
+
+void kelolaWarga(Wilayah &wilayah)
+{
+    bool running = true;
+
+    while (running)
+    {
+        system("cls");
+        cout << "====== KELOLA DATA WARGA ======" << endl;
+        cout << "Wilayah: " << wilayah.nama << endl;
+
+        cout << "1. Lihat Data Warga" << endl;
+        cout << "2. Input Data Warga" << endl;
+        cout << "3. Edit Data Warga" << endl;
+        cout << "4. Hapus Data Warga" << endl;
+        cout << "5. Keluar" << endl;
+        cout << "Pilihan menu (1-5): ";
+
+        int pilihan;
+        cin >> pilihan;
+
+        if (cin.fail())
+        {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cout << "Input tidak valid. Masukkan angka saja!" << endl;
+            system("pause");
+            continue;
+        }
+
+        switch (pilihan)
+        {
+        case 1:
+            system("cls");
+            cout << "====== DAFTAR WARGA ======" << endl;
+            wilayah.tampilkanSemuaData();
+            break;
+        case 2:
+            inputDataWarga(wilayah);
+            break;
+        case 3:
+            editDataWarga(wilayah);
+            break;
+        case 4:
+            hapusDataWarga(wilayah);
+            break;
+        case 5:
+            running = false;
+            break;
+
+        default:
+            cout << "Pilihan menu tidak valid!" << endl;
+            break;
+        }
+
+        system("pause");
+    }
+}
+
 int main()
 {
     Wilayah wilayah("Kelurahan Caringin");
@@ -198,13 +490,12 @@ int main()
         cout << "====== APLIKASI PENDATAAN BANSOS ======" << endl;
         cout << "Wilayah: " << wilayah.nama << endl
              << endl;
-        cout << "1. Input Data Warga" << endl;
-        cout << "2. Lihat Data Warga" << endl;
-        cout << "3. Daftarkan Bantuan untuk Warga" << endl;
-        cout << "4. Lihat Antrian Penerima Bantuan" << endl;
-        cout << "5. Lihat Riwayat Perubahan Data" << endl;
-        cout << "6. Keluar" << endl;
-        cout << "Pilihan menu (1-6): ";
+        cout << "1. Kelola Data Warga" << endl;
+        cout << "2. Daftarkan Bantuan untuk Warga" << endl;
+        cout << "3. Lihat Antrian Penerima Bantuan" << endl;
+        cout << "4. Lihat Riwayat Perubahan Data" << endl;
+        cout << "5. Keluar" << endl;
+        cout << "Pilihan menu (1-5): ";
 
         int pilihan;
         cin >> pilihan;
@@ -221,12 +512,10 @@ int main()
         switch (pilihan)
         {
         case 1:
-            inputDataWarga(wilayah);
+            kelolaWarga(wilayah);
             break;
         case 2:
-            system("cls");
-            cout << "====== DAFTAR WARGA ======" << endl;
-            wilayah.tampilkanSemuaData();
+            cout << "Fitur ini sedang dalam pengembangan" << endl;
             break;
         case 3:
             cout << "Fitur ini sedang dalam pengembangan" << endl;
@@ -235,12 +524,10 @@ int main()
             cout << "Fitur ini sedang dalam pengembangan" << endl;
             break;
         case 5:
-            cout << "Fitur ini sedang dalam pengembangan" << endl;
-            break;
-        case 6:
-            cout << "Terima kasih. Program berakhir." << endl;
+            cout << "Ciao." << endl;
             running = false;
             break;
+
         default:
             cout << "Pilihan menu tidak valid!" << endl;
             break;
