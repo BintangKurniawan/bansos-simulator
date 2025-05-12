@@ -3,11 +3,16 @@
 #include <string>
 #include <limits>
 #include <cctype>
+#include <ranges>
+#include <algorithm>
 using namespace std;
 
 struct Warga
 {
     string nama;
+    int umur;
+    int penghasilan;
+    string statusKeluarga;
     string alamat;
     string kategori;
 };
@@ -35,6 +40,9 @@ struct RT
         for (size_t i = 0; i < wargaList.size(); ++i)
         {
             cout << "  " << (i + 1) << ". Nama: " << wargaList[i].nama << "\n"
+                 << "     Umur: " << wargaList[i].umur << "\n"
+                 << "     Penghasilan: " << wargaList[i].penghasilan << "\n"
+                 << "     Status Keluarga: " << wargaList[i].statusKeluarga << "\n"
                  << "     Alamat: " << wargaList[i].alamat << "\n"
                  << "     Kategori: " << wargaList[i].kategori
                  << endl
@@ -80,7 +88,6 @@ struct Wilayah
         }
     }
 };
-
 void inputDataWarga(Wilayah &wilayah)
 {
     while (true)
@@ -91,24 +98,25 @@ void inputDataWarga(Wilayah &wilayah)
         if (wilayah.rtList.empty())
         {
             cout << "Tidak ada RT yang tersedia. Silakan tambahkan RT terlebih dahulu." << endl;
+            system("pause");
             return;
         }
 
         wilayah.tampilkanRt();
         cout << "0. Kembali ke menu utama" << endl;
         cout << "Pilih RT (nomor): ";
+
         int pilihanRt;
-        cin >> pilihanRt;
+        while (!(cin >> pilihanRt) || pilihanRt < 0 || pilihanRt > wilayah.rtList.size())
+        {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cout << "Input tidak valid! Masukkan nomor RT yang sesuai: ";
+        }
         cin.ignore();
 
         if (pilihanRt == 0)
             return;
-        if (pilihanRt < 1 || pilihanRt > wilayah.rtList.size())
-        {
-            cout << "RT tidak valid!" << endl;
-            system("pause");
-            continue;
-        }
 
         RT &rtTerpilih = wilayah.rtList[pilihanRt - 1];
         char tambahLagi;
@@ -121,56 +129,117 @@ void inputDataWarga(Wilayah &wilayah)
 
             Warga wargaBaru;
 
-            cout << "Nama Warga: ";
-            getline(cin, wargaBaru.nama);
-            if (wargaBaru.nama.empty())
+            do
             {
-                cout << "Nama tidak boleh kosong!" << endl;
-                system("pause");
-                continue;
-            }
-
-            cout << "Alamat: ";
-            getline(cin, wargaBaru.alamat);
-            if (wargaBaru.alamat.empty())
-            {
-                cout << "Alamat tidak boleh kosong!" << endl;
-                system("pause");
-                continue;
-            }
-
-            while (true)
-            {
-                cout << "Kategori (Miskin/Lansia/Yatim): ";
-                getline(cin, wargaBaru.kategori);
-
-                string lowerKategori;
-                for (char c : wargaBaru.kategori)
+                cout << "Nama Warga: ";
+                getline(cin, wargaBaru.nama);
+                if (wargaBaru.nama.empty())
                 {
-                    lowerKategori += tolower(c);
+                    cout << "Nama tidak boleh kosong!" << endl;
                 }
-
-                if (lowerKategori == "miskin" || lowerKategori == "lansia" || lowerKategori == "yatim")
+                else if (any_of(wargaBaru.nama.begin(), wargaBaru.nama.end(), ::isdigit))
                 {
-                    if (!wargaBaru.kategori.empty())
-                    {
-                        wargaBaru.kategori[0] = toupper(wargaBaru.kategori[0]);
-                    }
-                    break;
+                    cout << "Nama tidak boleh mengandung angka!" << endl;
+                    wargaBaru.nama.clear();
+                }
+            } while (wargaBaru.nama.empty());
+
+            do
+            {
+                cout << "Umur: ";
+                while (!(cin >> wargaBaru.umur))
+                {
+                    cin.clear();
+                    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                    cout << "Input harus angka! Masukkan umur: ";
+                }
+                cin.ignore();
+                if (wargaBaru.umur < 0 || wargaBaru.umur > 120)
+                {
+                    cout << "Umur tidak valid (0-120 tahun)!" << endl;
+                }
+            } while (wargaBaru.umur < 0 || wargaBaru.umur > 120);
+
+            do
+            {
+                cout << "Penghasilan: ";
+                while (!(cin >> wargaBaru.penghasilan))
+                {
+                    cin.clear();
+                    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                    cout << "Input harus angka! Masukkan penghasilan: ";
+                }
+                cin.ignore();
+                if (wargaBaru.penghasilan < 0)
+                {
+                    cout << "Penghasilan tidak boleh negatif!" << endl;
+                }
+            } while (wargaBaru.penghasilan < 0);
+
+            do
+            {
+                cout << "Status Keluarga (Yatim/Bukan): ";
+                getline(cin, wargaBaru.statusKeluarga);
+                if (wargaBaru.statusKeluarga.empty())
+                {
+                    cout << "Status Keluarga tidak boleh kosong!" << endl;
+                }
+                string statusLower = wargaBaru.statusKeluarga;
+                transform(statusLower.begin(), statusLower.end(), statusLower.begin(), ::tolower);
+                if (statusLower != "yatim" && statusLower != "bukan")
+                {
+                    cout << "Status harus 'Yatim' atau 'Bukan'!" << endl;
+                    wargaBaru.statusKeluarga.clear();
                 }
                 else
                 {
-                    cout << "Kategori tidak valid! Pilih antara Miskin, Lansia, atau Yatim" << endl;
+                    wargaBaru.statusKeluarga[0] = toupper(wargaBaru.statusKeluarga[0]);
+                    for (size_t i = 1; i < wargaBaru.statusKeluarga.size(); i++)
+                    {
+                        wargaBaru.statusKeluarga[i] = tolower(wargaBaru.statusKeluarga[i]);
+                    }
                 }
+            } while (wargaBaru.statusKeluarga.empty());
+
+            do
+            {
+                cout << "Alamat: ";
+                getline(cin, wargaBaru.alamat);
+                if (wargaBaru.alamat.empty())
+                {
+                    cout << "Alamat tidak boleh kosong!" << endl;
+                }
+            } while (wargaBaru.alamat.empty());
+
+            string statusLower = wargaBaru.statusKeluarga;
+            transform(statusLower.begin(), statusLower.end(), statusLower.begin(), ::tolower);
+
+            if (wargaBaru.umur > 60 ||
+                (statusLower == "yatim" && wargaBaru.umur < 18) ||
+                wargaBaru.penghasilan < 3370534)
+            {
+                wargaBaru.kategori = "Prioritas";
+            }
+            else
+            {
+                wargaBaru.kategori = "Reguler";
             }
 
             rtTerpilih.tambahWarga(wargaBaru);
             cout << "Warga " << wargaBaru.nama << " berhasil ditambahkan!" << endl;
 
-            cout << "Tambah warga lagi? (Y/N): ";
-            cin >> tambahLagi;
-            cin.ignore();
-            tambahLagi = toupper(tambahLagi);
+            do
+            {
+                cout << "Tambah warga lagi? (Y/N): ";
+                cin >> tambahLagi;
+                cin.ignore();
+                tambahLagi = toupper(tambahLagi);
+                if (tambahLagi != 'Y' && tambahLagi != 'N')
+                {
+                    cout << "Masukkan Y atau N!" << endl;
+                }
+            } while (tambahLagi != 'Y' && tambahLagi != 'N');
+
         } while (tambahLagi == 'Y');
 
         break;
@@ -187,123 +256,229 @@ void editDataWarga(Wilayah &wilayah)
         if (wilayah.rtList.empty())
         {
             cout << "Tidak ada RT yang tersedia. Silakan tambahkan RT terlebih dahulu." << endl;
+            system("pause");
             return;
         }
 
         wilayah.tampilkanRt();
         cout << "0. Kembali ke menu utama" << endl;
         cout << "Pilih RT (nomor): ";
+
         int pilihanRt;
-        cin >> pilihanRt;
+        while (!(cin >> pilihanRt) || pilihanRt < 0 || pilihanRt > wilayah.rtList.size())
+        {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cout << "Input tidak valid! Masukkan nomor RT yang sesuai: ";
+        }
         cin.ignore();
 
         if (pilihanRt == 0)
             return;
-        if (pilihanRt < 1 || pilihanRt > wilayah.rtList.size())
+
+        RT &rtTerpilih = wilayah.rtList[pilihanRt - 1];
+
+        if (rtTerpilih.wargaList.empty())
         {
-            cout << "RT tidak valid!" << endl;
+            cout << "Tidak ada warga yang terdaftar di RT ini." << endl;
             system("pause");
             continue;
         }
 
-        RT &rtTerpilih = wilayah.rtList[pilihanRt - 1];
-        char editLagi;
-
-        wilayah.rtList[pilihanRt - 1].tampilkanWarga();
+        rtTerpilih.tampilkanWarga();
         cout << "0. Kembali ke menu utama" << endl;
         cout << "Pilih warga yang ingin diedit (nomor): ";
+
         int pilihanWarga;
-        cin >> pilihanWarga;
+        while (!(cin >> pilihanWarga) || pilihanWarga < 0 || pilihanWarga > rtTerpilih.wargaList.size())
+        {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cout << "Input tidak valid! Masukkan nomor warga yang sesuai: ";
+        }
         cin.ignore();
 
         if (pilihanWarga == 0)
             return;
-        if (pilihanWarga < 1 || pilihanWarga > rtTerpilih.wargaList.size())
-        {
-            cout << "Warga tidak valid!" << endl;
-            system("pause");
-            continue;
-        }
 
         Warga &wargaTerpilih = rtTerpilih.wargaList[pilihanWarga - 1];
+        char editLagi;
 
         do
         {
             system("cls");
             cout << "RT " << rtTerpilih.nama << endl;
             cout << "====== EDIT DATA WARGA ======" << endl;
-
-            cout << "Nama Warga: " << wargaTerpilih.nama << endl;
-            cout << "Alamat: " << wargaTerpilih.alamat << endl;
-            cout << "Kategori: " << wargaTerpilih.kategori << endl;
+            cout << "Nama: " << wargaTerpilih.nama << endl;
+            cout << "Umur: " << wargaTerpilih.umur << endl;
+            cout << "Penghasilan: " << wargaTerpilih.penghasilan << endl;
+            cout << "Status Keluarga: " << wargaTerpilih.statusKeluarga << endl;
+            cout << "Alamat: " << wargaTerpilih.alamat << endl
+                 << endl;
 
             cout << "Pilih data yang ingin diedit:" << endl;
             cout << "1. Nama" << endl;
-            cout << "2. Alamat" << endl;
-            cout << "3. Kategori" << endl;
-            cout << "Pilihan menu (1-3): ";
-            int pilihanMenu;
-            cin >> pilihanMenu;
-            cin.ignore();
+            cout << "2. Umur" << endl;
+            cout << "3. Penghasilan" << endl;
+            cout << "4. Status Keluarga" << endl;
+            cout << "5. Alamat" << endl;
+            cout << "0. Kembali" << endl;
+            cout << "Pilihan menu (0-5): ";
 
-            if (cin.fail())
+            int pilihanMenu;
+            while (!(cin >> pilihanMenu) || pilihanMenu < 0 || pilihanMenu > 5)
             {
                 cin.clear();
                 cin.ignore(numeric_limits<streamsize>::max(), '\n');
-                cout << "Input tidak valid. Masukkan angka saja!" << endl;
-                system("pause");
-                continue;
+                cout << "Input tidak valid! Masukkan angka 0-6: ";
             }
+            cin.ignore();
+
+            if (pilihanMenu == 0)
+                break;
 
             switch (pilihanMenu)
             {
-            case 1:
-                cout << "Masukkan nama baru: ";
-                getline(cin, wargaTerpilih.nama);
-                break;
-            case 2:
-                cout << "Masukkan alamat baru: ";
-                getline(cin, wargaTerpilih.alamat);
-                break;
-            case 3:
-                while (true)
+            case 1: // Edit Nama
+                do
                 {
+                    cout << "Nama saat ini: " << wargaTerpilih.nama << endl;
+                    cout << "Masukkan nama baru: ";
+                    getline(cin, wargaTerpilih.nama);
 
-                    cout << "Masukkan kategori baru (Miskin, Lansia, atau Yatim): ";
-                    getline(cin, wargaTerpilih.kategori);
-
-                    string lowerKategori;
-                    for (char c : wargaTerpilih.kategori)
+                    if (wargaTerpilih.nama.empty())
                     {
-                        lowerKategori += tolower(c);
+                        cout << "Nama tidak boleh kosong!" << endl;
                     }
-
-                    if (lowerKategori == "miskin" || lowerKategori == "lansia" || lowerKategori == "yatim")
+                    else if (any_of(wargaTerpilih.nama.begin(), wargaTerpilih.nama.end(), ::isdigit))
                     {
-                        if (!wargaTerpilih.kategori.empty())
-                        {
-                            wargaTerpilih.kategori[0] = toupper(wargaTerpilih.kategori[0]);
-                        }
-                        break;
+                        cout << "Nama tidak boleh mengandung angka!" << endl;
+                        wargaTerpilih.nama.clear();
                     }
+                } while (wargaTerpilih.nama.empty());
+                break;
 
+            case 2: // Edit Umur
+                do
+                {
+                    cout << "Umur saat ini: " << wargaTerpilih.umur << endl;
+                    cout << "Masukkan umur baru: ";
+                    while (!(cin >> wargaTerpilih.umur))
+                    {
+                        cin.clear();
+                        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                        cout << "Input harus angka! Masukkan umur: ";
+                    }
+                    cin.ignore();
+
+                    if (wargaTerpilih.umur < 0 || wargaTerpilih.umur > 120)
+                    {
+                        cout << "Umur tidak valid (0-120 tahun)!" << endl;
+                    }
+                } while (wargaTerpilih.umur < 0 || wargaTerpilih.umur > 120);
+                break;
+
+            case 3: // Edit Penghasilan
+                do
+                {
+                    cout << "Penghasilan saat ini: " << wargaTerpilih.penghasilan << endl;
+                    cout << "Masukkan penghasilan baru: ";
+                    while (!(cin >> wargaTerpilih.penghasilan))
+                    {
+                        cin.clear();
+                        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                        cout << "Input harus angka! Masukkan penghasilan: ";
+                    }
+                    cin.ignore();
+
+                    if (wargaTerpilih.penghasilan < 0)
+                    {
+                        cout << "Penghasilan tidak boleh negatif!" << endl;
+                    }
+                } while (wargaTerpilih.penghasilan < 0);
+                break;
+
+            case 4: // Edit Status Keluarga
+                do
+                {
+                    cout << "Status Keluarga saat ini: " << wargaTerpilih.statusKeluarga << endl;
+                    cout << "Masukkan status keluarga baru (Yatim/Bukan): ";
+                    getline(cin, wargaTerpilih.statusKeluarga);
+
+                    if (wargaTerpilih.statusKeluarga.empty())
+                    {
+                        cout << "Status Keluarga tidak boleh kosong!" << endl;
+                    }
                     else
                     {
-                        cout << "Kategori harus Miskin, Lansia, atau Yatim!" << endl;
+                        string statusLower = wargaTerpilih.statusKeluarga;
+                        transform(statusLower.begin(), statusLower.end(), statusLower.begin(), ::tolower);
+
+                        if (statusLower != "yatim" && statusLower != "bukan")
+                        {
+                            cout << "Status harus 'Yatim' atau 'Bukan'!" << endl;
+                            wargaTerpilih.statusKeluarga.clear();
+                        }
+                        else
+                        {
+                            wargaTerpilih.statusKeluarga[0] = toupper(wargaTerpilih.statusKeluarga[0]);
+                            for (size_t i = 1; i < wargaTerpilih.statusKeluarga.size(); i++)
+                            {
+                                wargaTerpilih.statusKeluarga[i] = tolower(wargaTerpilih.statusKeluarga[i]);
+                            }
+                        }
                     }
-                }
+                } while (wargaTerpilih.statusKeluarga.empty());
                 break;
+
+            case 5: // Edit Alamat
+                do
+                {
+                    cout << "Alamat saat ini: " << wargaTerpilih.alamat << endl;
+                    cout << "Masukkan alamat baru: ";
+                    getline(cin, wargaTerpilih.alamat);
+
+                    if (wargaTerpilih.alamat.empty())
+                    {
+                        cout << "Alamat tidak boleh kosong!" << endl;
+                    }
+                } while (wargaTerpilih.alamat.empty());
+                break;
+
             default:
-                cout << "Pilihan menu tidak valid!" << endl;
+                cout << "Pilihan tidak valid!" << endl;
                 break;
             }
 
-            cout << "Edit lagi? (Y/N): ";
-            cin >> editLagi;
-            cin.ignore();
-            editLagi = toupper(editLagi);
+            do
+            {
+                cout << "Edit data lain untuk warga ini? (Y/N): ";
+                cin >> editLagi;
+                cin.ignore();
+                editLagi = toupper(editLagi);
+                if (editLagi != 'Y' && editLagi != 'N')
+                {
+                    cout << "Masukkan Y atau N!" << endl;
+                }
+            } while (editLagi != 'Y' && editLagi != 'N');
+
         } while (editLagi == 'Y');
 
+        string statusLower = wargaTerpilih.statusKeluarga;
+        transform(statusLower.begin(), statusLower.end(), statusLower.begin(), ::tolower);
+
+        if (wargaTerpilih.umur > 60 ||
+            (statusLower == "yatim" && wargaTerpilih.umur < 18) ||
+            wargaTerpilih.penghasilan < 3370534)
+        {
+            wargaTerpilih.kategori = "Prioritas";
+        }
+        else
+        {
+            wargaTerpilih.kategori = "Reguler";
+        }
+
+        cout << "Data warga berhasil diperbarui!" << endl;
         break;
     }
 }
@@ -476,12 +651,12 @@ int main()
     wilayah.tambahRt(RT("RT 02"));
     wilayah.tambahRt(RT("RT 03"));
 
-    wilayah.rtList[0].tambahWarga(Warga{"Asep", "Jl. Caringin No. 2", "Miskin"});
-    wilayah.rtList[0].tambahWarga(Warga{"Budin", "Jl. Caringin No. 3", "Yatim"});
-    wilayah.rtList[1].tambahWarga(Warga{"Chika", "Jl. Mekar No. 1", "Miskin"});
-    wilayah.rtList[1].tambahWarga(Warga{"Doni", "Jl. Mekar No. 12", "Lansia"});
-    wilayah.rtList[2].tambahWarga(Warga{"Elvis", "Jl. Baghdad No. 11", "Miskin"});
-    wilayah.rtList[2].tambahWarga(Warga{"Fuki", "Jl. Baghdad No. 22", "Lansia"});
+    wilayah.rtList[0].tambahWarga(Warga{"Asep", 19, 2000000, "Bukan", "Jl. Caringin No. 2", "Prioritas"});
+    wilayah.rtList[0].tambahWarga(Warga{"Budin", 17, 100000, "Yatim", "Jl. Caringin No. 3", "Prioritas"});
+    wilayah.rtList[1].tambahWarga(Warga{"Cecep", 68, 10000000, "Yatim", "Jl. Amba No. 3", "Prioritas"});
+    wilayah.rtList[1].tambahWarga(Warga{"Doni", 24, 100000, "Yatim", "Jl. Amba No. 2", "Reguler"});
+    wilayah.rtList[2].tambahWarga(Warga{"Edi", 35, 200000, "Yatim", "Jl. Nigerian No. 1", "Prioritas"});
+    wilayah.rtList[2].tambahWarga(Warga{"Feri", 18, 1400000, "Bukan", "Jl. Nigerian No. 2", "Prioritas"});
 
     bool running = true;
     while (running)
