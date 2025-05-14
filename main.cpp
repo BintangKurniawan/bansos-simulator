@@ -5,6 +5,11 @@
 #include <cctype>
 #include <ranges>
 #include <algorithm>
+#include "json.hpp"
+#include <fstream>
+
+using json = nlohmann::json;
+
 using namespace std;
 
 struct Warga
