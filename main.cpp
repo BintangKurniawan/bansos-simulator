@@ -5,6 +5,11 @@
 #include <cctype>
 #include <ranges>
 #include <algorithm>
+#include "json.hpp"
+#include <fstream>
+
+using json = nlohmann::json;
+
 using namespace std;
 
 struct Warga
@@ -16,41 +21,185 @@ struct Warga
     string alamat;
     string kategori;
 };
+struct TreeNode
+{
+    Warga data;
+    TreeNode *left;
+    TreeNode *right;
 
+    TreeNode(const Warga &warga)
+        : data(warga), left(nullptr), right(nullptr) {}
+};
 struct RT
 {
     string nama;
-    vector<Warga> wargaList;
+    TreeNode *root = nullptr;
+
     RT(string nama) : nama(nama) {}
+
+    ~RT()
+    {
+        clearTree(root);
+    }
+
+    void clearTree(TreeNode *node)
+    {
+        if (node == nullptr)
+            return;
+        clearTree(node->left);
+        clearTree(node->right);
+        delete node;
+    }
 
     void tambahWarga(const Warga &warga)
     {
-        wargaList.push_back(warga);
+        root = insert(root, warga);
+    }
+
+    TreeNode *insert(TreeNode *node, const Warga &warga)
+    {
+        if (node == nullptr)
+        {
+            return new TreeNode(warga);
+        }
+
+        if (warga.nama < node->data.nama)
+        {
+            node->left = insert(node->left, warga);
+        }
+        else
+        {
+            node->right = insert(node->right, warga);
+        }
+
+        return node;
     }
 
     void tampilkanWarga() const
     {
-        if (wargaList.empty())
+        if (root == nullptr)
         {
             cout << "  Tidak ada warga terdaftar di " << nama << endl;
             return;
         }
 
         cout << "  Daftar Warga di " << nama << ":" << endl;
-        for (size_t i = 0; i < wargaList.size(); ++i)
+        int counter = 1;
+        inOrderTraversal(root, counter);
+    }
+
+    void inOrderTraversal(TreeNode *node, int &counter) const
+    {
+        if (node == nullptr)
+            return;
+
+        inOrderTraversal(node->left, counter);
+
+        cout << "  " << counter++ << ". Nama: " << node->data.nama << "\n"
+             << "     Umur: " << node->data.umur << "\n"
+             << "     Penghasilan: " << node->data.penghasilan << "\n"
+             << "     Status Keluarga: " << node->data.statusKeluarga << "\n"
+             << "     Alamat: " << node->data.alamat << "\n"
+             << "     Kategori: " << node->data.kategori
+             << endl
+             << endl;
+
+        inOrderTraversal(node->right, counter);
+    }
+
+    TreeNode *cariWarga(TreeNode *node, const string &nama)
+    {
+        if (node == nullptr)
+            return nullptr;
+
+        if (node->data.nama == nama)
+            return node;
+
+        TreeNode *found = cariWarga(node->left, nama);
+        if (found != nullptr)
+            return found;
+
+        return cariWarga(node->right, nama);
+    }
+
+    TreeNode *cariWargaByIndex(TreeNode *node, int target, int &current)
+    {
+        if (node == nullptr)
+            return nullptr;
+
+        TreeNode *left = cariWargaByIndex(node->left, target, current);
+        if (left != nullptr)
+            return left;
+
+        if (current == target)
+            return node;
+        current++;
+
+        return cariWargaByIndex(node->right, target, current);
+    }
+
+    void hapusWarga(const string &nama)
+    {
+        root = deleteNode(root, nama);
+    }
+
+    TreeNode *deleteNode(TreeNode *node, const string &nama)
+    {
+        if (node == nullptr)
+            return nullptr;
+
+        if (nama < node->data.nama)
         {
-            cout << "  " << (i + 1) << ". Nama: " << wargaList[i].nama << "\n"
-                 << "     Umur: " << wargaList[i].umur << "\n"
-                 << "     Penghasilan: " << wargaList[i].penghasilan << "\n"
-                 << "     Status Keluarga: " << wargaList[i].statusKeluarga << "\n"
-                 << "     Alamat: " << wargaList[i].alamat << "\n"
-                 << "     Kategori: " << wargaList[i].kategori
-                 << endl
-                 << endl;
+            node->left = deleteNode(node->left, nama);
         }
+        else if (nama > node->data.nama)
+        {
+            node->right = deleteNode(node->right, nama);
+        }
+        else
+        {
+            if (node->left == nullptr)
+            {
+                TreeNode *temp = node->right;
+                delete node;
+                return temp;
+            }
+            else if (node->right == nullptr)
+            {
+                TreeNode *temp = node->left;
+                delete node;
+                return temp;
+            }
+
+            TreeNode *temp = minValueNode(node->right);
+            node->data = temp->data;
+            node->right = deleteNode(node->right, temp->data.nama);
+        }
+        return node;
+    }
+
+    TreeNode *minValueNode(TreeNode *node)
+    {
+        TreeNode *current = node;
+        while (current && current->left != nullptr)
+        {
+            current = current->left;
+        }
+        return current;
+    }
+
+    int countWarga() const
+    {
+        return countNodes(root);
+    }
+
+    int countNodes(TreeNode *node) const
+    {
+        if (node == nullptr)
+            return 0;
+        return 1 + countNodes(node->left) + countNodes(node->right);
     }
 };
-
 struct Wilayah
 {
     string nama;
@@ -74,7 +223,8 @@ struct Wilayah
         cout << "Daftar RT di wilayah " << nama << ":" << endl;
         for (size_t i = 0; i < rtList.size(); ++i)
         {
-            cout << "  " << (i + 1) << ". " << rtList[i].nama << endl;
+            cout << "  " << (i + 1) << ". " << rtList[i].nama << " ("
+                 << rtList[i].countWarga() << " warga)" << endl;
         }
     }
 
@@ -88,6 +238,7 @@ struct Wilayah
         }
     }
 };
+
 void inputDataWarga(Wilayah &wilayah)
 {
     while (true)
@@ -278,7 +429,7 @@ void editDataWarga(Wilayah &wilayah)
 
         RT &rtTerpilih = wilayah.rtList[pilihanRt - 1];
 
-        if (rtTerpilih.wargaList.empty())
+        if (rtTerpilih.countWarga() == 0)
         {
             cout << "Tidak ada warga yang terdaftar di RT ini." << endl;
             system("pause");
@@ -290,7 +441,7 @@ void editDataWarga(Wilayah &wilayah)
         cout << "Pilih warga yang ingin diedit (nomor): ";
 
         int pilihanWarga;
-        while (!(cin >> pilihanWarga) || pilihanWarga < 0 || pilihanWarga > rtTerpilih.wargaList.size())
+        while (!(cin >> pilihanWarga) || pilihanWarga < 0 || pilihanWarga > rtTerpilih.countWarga())
         {
             cin.clear();
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
@@ -301,7 +452,16 @@ void editDataWarga(Wilayah &wilayah)
         if (pilihanWarga == 0)
             return;
 
-        Warga &wargaTerpilih = rtTerpilih.wargaList[pilihanWarga - 1];
+        int currentIndex = 0;
+        TreeNode *nodeWarga = rtTerpilih.cariWargaByIndex(rtTerpilih.root, pilihanWarga - 1, currentIndex);
+        if (nodeWarga == nullptr)
+        {
+            cout << "Warga tidak ditemukan!" << endl;
+            system("pause");
+            continue;
+        }
+
+        Warga &wargaTerpilih = nodeWarga->data;
         char editLagi;
 
         do
@@ -330,7 +490,7 @@ void editDataWarga(Wilayah &wilayah)
             {
                 cin.clear();
                 cin.ignore(numeric_limits<streamsize>::max(), '\n');
-                cout << "Input tidak valid! Masukkan angka 0-6: ";
+                cout << "Input tidak valid! Masukkan angka 0-5: ";
             }
             cin.ignore();
 
@@ -339,7 +499,9 @@ void editDataWarga(Wilayah &wilayah)
 
             switch (pilihanMenu)
             {
-            case 1: // Edit Nama
+            case 1:
+            {
+                string namaLama = wargaTerpilih.nama;
                 do
                 {
                     cout << "Nama saat ini: " << wargaTerpilih.nama << endl;
@@ -353,12 +515,21 @@ void editDataWarga(Wilayah &wilayah)
                     else if (any_of(wargaTerpilih.nama.begin(), wargaTerpilih.nama.end(), ::isdigit))
                     {
                         cout << "Nama tidak boleh mengandung angka!" << endl;
-                        wargaTerpilih.nama.clear();
+                        wargaTerpilih.nama = namaLama;
                     }
                 } while (wargaTerpilih.nama.empty());
-                break;
 
-            case 2: // Edit Umur
+                // Jika nama diubah, kita perlu reinsert node karena nama adalah key
+                if (namaLama != wargaTerpilih.nama)
+                {
+                    Warga wargaTemp = wargaTerpilih;
+                    rtTerpilih.hapusWarga(namaLama);
+                    rtTerpilih.tambahWarga(wargaTemp);
+                }
+                break;
+            }
+            case 2:
+            {
                 do
                 {
                     cout << "Umur saat ini: " << wargaTerpilih.umur << endl;
@@ -377,8 +548,9 @@ void editDataWarga(Wilayah &wilayah)
                     }
                 } while (wargaTerpilih.umur < 0 || wargaTerpilih.umur > 120);
                 break;
-
-            case 3: // Edit Penghasilan
+            }
+            case 3:
+            {
                 do
                 {
                     cout << "Penghasilan saat ini: " << wargaTerpilih.penghasilan << endl;
@@ -397,8 +569,9 @@ void editDataWarga(Wilayah &wilayah)
                     }
                 } while (wargaTerpilih.penghasilan < 0);
                 break;
-
-            case 4: // Edit Status Keluarga
+            }
+            case 4:
+            {
                 do
                 {
                     cout << "Status Keluarga saat ini: " << wargaTerpilih.statusKeluarga << endl;
@@ -430,8 +603,9 @@ void editDataWarga(Wilayah &wilayah)
                     }
                 } while (wargaTerpilih.statusKeluarga.empty());
                 break;
-
-            case 5: // Edit Alamat
+            }
+            case 5:
+            {
                 do
                 {
                     cout << "Alamat saat ini: " << wargaTerpilih.alamat << endl;
@@ -444,10 +618,22 @@ void editDataWarga(Wilayah &wilayah)
                     }
                 } while (wargaTerpilih.alamat.empty());
                 break;
+            }
+            }
 
-            default:
-                cout << "Pilihan tidak valid!" << endl;
-                break;
+            // Update kategori setelah edit
+            string statusLower = wargaTerpilih.statusKeluarga;
+            transform(statusLower.begin(), statusLower.end(), statusLower.begin(), ::tolower);
+
+            if (wargaTerpilih.umur > 60 ||
+                (statusLower == "yatim" && wargaTerpilih.umur < 18) ||
+                wargaTerpilih.penghasilan < 3370534)
+            {
+                wargaTerpilih.kategori = "Prioritas";
+            }
+            else
+            {
+                wargaTerpilih.kategori = "Reguler";
             }
 
             do
@@ -463,20 +649,6 @@ void editDataWarga(Wilayah &wilayah)
             } while (editLagi != 'Y' && editLagi != 'N');
 
         } while (editLagi == 'Y');
-
-        string statusLower = wargaTerpilih.statusKeluarga;
-        transform(statusLower.begin(), statusLower.end(), statusLower.begin(), ::tolower);
-
-        if (wargaTerpilih.umur > 60 ||
-            (statusLower == "yatim" && wargaTerpilih.umur < 18) ||
-            wargaTerpilih.penghasilan < 3370534)
-        {
-            wargaTerpilih.kategori = "Prioritas";
-        }
-        else
-        {
-            wargaTerpilih.kategori = "Reguler";
-        }
 
         cout << "Data warga berhasil diperbarui!" << endl;
         break;
@@ -523,7 +695,7 @@ void hapusDataWarga(Wilayah &wilayah)
 
         RT &rtTerpilih = wilayah.rtList[pilihanRt - 1];
 
-        if (rtTerpilih.wargaList.empty())
+        if (rtTerpilih.countWarga() == 0)
         {
             cout << "Tidak ada warga di RT " << rtTerpilih.nama << endl;
             system("pause");
@@ -549,14 +721,23 @@ void hapusDataWarga(Wilayah &wilayah)
 
         if (pilihanWarga == 0)
             return;
-        if (pilihanWarga < 1 || pilihanWarga > rtTerpilih.wargaList.size())
+        if (pilihanWarga < 1 || pilihanWarga > rtTerpilih.countWarga())
         {
             cout << "Warga tidak valid!" << endl;
             system("pause");
             continue;
         }
 
-        Warga &wargaTerpilih = rtTerpilih.wargaList[pilihanWarga - 1];
+        int currentIndex = 0;
+        TreeNode *nodeWarga = rtTerpilih.cariWargaByIndex(rtTerpilih.root, pilihanWarga - 1, currentIndex);
+        if (nodeWarga == nullptr)
+        {
+            cout << "Warga tidak ditemukan!" << endl;
+            system("pause");
+            continue;
+        }
+
+        Warga &wargaTerpilih = nodeWarga->data;
         char konfirmasi;
         do
         {
@@ -579,7 +760,7 @@ void hapusDataWarga(Wilayah &wilayah)
 
         if (konfirmasi == 'Y')
         {
-            rtTerpilih.wargaList.erase(rtTerpilih.wargaList.begin() + pilihanWarga - 1);
+            rtTerpilih.hapusWarga(wargaTerpilih.nama);
             cout << "Data warga berhasil dihapus." << endl;
             return;
         }
