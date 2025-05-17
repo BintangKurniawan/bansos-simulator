@@ -11,7 +11,7 @@
 
   <p>
     <strong>Warga +</strong> adalah aplikasi penyaluran bantuan sosial (bansos) berbasis Command Line Interface (CLI) yang dikembangkan menggunakan bahasa C++. 
-    Aplikasi ini dibuat untuk memudahkan pendataan dan distribusi bansos kepada warga dengan membuat prioritas antrian bansos berdasarkan latar belakang warga sehingga lebih efisien
+    Aplikasi ini dibuat untuk memudahkan pendataan dan distribusi bansos kepada warga dengan membuat prioritas antrian bansos berdasarkan latar belakang warga sehingga lebih efisien.
   </p>
 
   <h2>Fitur Utama</h2>
@@ -24,7 +24,7 @@
     <li>Simulasi distribusi antrian prioritas bansos</li>
   </ul>
 
-  <h2>Anggota Kelompok</h2>
+  <h2>Dibuat oleh:</h2>
   <ul>
     <li>Bintang Kurniawan (2407067)</li>
     <li>Erik Klaus Keifas Kalalo (2400887)</li>
