@@ -283,12 +283,12 @@ struct Wilayah
 
             if (perubahan.aksi == "EDIT") {
                 cout << "  Field yang diubah: " << perubahan.fieldDiubah << endl;
-                cout << "  Nilai Lama: " << perubahan.nilaiLama << endl;
-                cout << "  Nilai Baru: " << perubahan.nilaiBaru << endl;
+                cout << "  Data Lama: " << perubahan.nilaiLama << endl;
+                cout << "  Data Baru: " << perubahan.nilaiBaru << endl;
             } else if (perubahan.aksi == "HAPUS") {
                 cout << "  Data dihapus" << endl;
-                cout << "  Nilai Lama: " << perubahan.nilaiLama << endl;
-                cout << "  Nilai Baru: " << perubahan.nilaiBaru << endl;
+                cout << "  Data Lama: " << perubahan.nilaiLama << endl;
+                cout << "  Data Baru: " << perubahan.nilaiBaru << endl;
             }
 
             cout << "  ------------------------" << endl;
@@ -485,7 +485,7 @@ void editDataWarga(Wilayah &wilayah)
         cout << "Pilih RT (nomor): ";
 
         int pilihanRt;
-        while (!(cin >> pilihanRt) || pilihanRt < 0 || pilihanRt > wilayah.rtList.size())
+        while (!(cin >> pilihanRt) || pilihanRt < 0 || pilihanRt > static_cast<int>(wilayah.rtList.size()))
         {
             cin.clear();
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
@@ -567,155 +567,203 @@ void editDataWarga(Wilayah &wilayah)
                 break;
 
             switch (pilihanMenu)
-            {
-            case 1:
-            {
-                string namaLama = wargaTerpilih.nama;
-
-                PerubahanData perubahan;
-                time_t now = time(0);
-                perubahan.waktu = ctime(&now);
-                perubahan.rt = rtTerpilih.nama;
-                perubahan.namaWarga = wargaTerpilih.nama;
-                perubahan.aksi = "EDIT";
-                perubahan.fieldDiubah = "Nama";
-                perubahan.nilaiLama = wargaTerpilih.nama; 
-                perubahan.nilaiBaru = "-"; // Nilai baru akan diisi setelah input
-                wilayah.tambahRiwayat(perubahan);   
-                // Input nama baru
-
-                do
-                {
-                    cout << "Nama saat ini: " << wargaTerpilih.nama << endl;
-                    cout << "Masukkan nama baru: ";
-                    getline(cin, wargaTerpilih.nama);
-
-                    if (wargaTerpilih.nama.empty())
-                    {
-                        cout << "Nama tidak boleh kosong!" << endl;
-                    }
-                    else if (any_of(wargaTerpilih.nama.begin(), wargaTerpilih.nama.end(), ::isdigit))
-                    {
-                        cout << "Nama tidak boleh mengandung angka!" << endl;
-                        wargaTerpilih.nama = namaLama;
-                    }
-                } while (wargaTerpilih.nama.empty());
-
-                // Jika nama diubah, kita perlu reinsert node karena nama adalah key
-                if (namaLama != wargaTerpilih.nama)
-                {
-                    Warga wargaTemp = wargaTerpilih;
-                    rtTerpilih.hapusWarga(namaLama);
-                    rtTerpilih.tambahWarga(wargaTemp);
-                }
-                break;
-            }
-            case 2:
-            {
-
-                int umurLama = wargaTerpilih.umur;
-
-                PerubahanData perubahan;
-                time_t now = time(0);
-                perubahan.waktu = ctime(&now);
-                perubahan.rt = rtTerpilih.nama;
-                perubahan.namaWarga = wargaTerpilih.nama;
-                perubahan.aksi = "EDIT";
-                perubahan.fieldDiubah = "Umur";
-                perubahan.nilaiLama = to_string(wargaTerpilih.umur);
-                perubahan.nilaiBaru = "-";
-
-                wilayah.tambahRiwayat(perubahan);
-                do
-                {
-                    cout << "Umur saat ini: " << wargaTerpilih.umur << endl;
-                    cout << "Masukkan umur baru: ";
-                    while (!(cin >> wargaTerpilih.umur))
-                    {
-                        cin.clear();
-                        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-                        cout << "Input harus angka! Masukkan umur: ";
-                    }
-                    cin.ignore();
-
-                    if (wargaTerpilih.umur < 0 || wargaTerpilih.umur > 120)
-                    {
-                        cout << "Umur tidak valid (0-120 tahun)!" << endl;
-                    }
-                } while (wargaTerpilih.umur < 0 || wargaTerpilih.umur > 120);
-                break;
-            }
-            case 3:
-            {
-                do
-                {
-                    cout << "Penghasilan saat ini: " << wargaTerpilih.penghasilan << endl;
-                    cout << "Masukkan penghasilan baru: ";
-                    while (!(cin >> wargaTerpilih.penghasilan))
-                    {
-                        cin.clear();
-                        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-                        cout << "Input harus angka! Masukkan penghasilan: ";
-                    }
-                    cin.ignore();
-
-                    if (wargaTerpilih.penghasilan < 0)
-                    {
-                        cout << "Penghasilan tidak boleh negatif!" << endl;
-                    }
-                } while (wargaTerpilih.penghasilan < 0);
-                break;
-            }
-            case 4:
-            {
-                do
-                {
-                    cout << "Status Keluarga saat ini: " << wargaTerpilih.statusKeluarga << endl;
-                    cout << "Masukkan status keluarga baru (Yatim/Bukan): ";
-                    getline(cin, wargaTerpilih.statusKeluarga);
-
-                    if (wargaTerpilih.statusKeluarga.empty())
-                    {
-                        cout << "Status Keluarga tidak boleh kosong!" << endl;
-                    }
-                    else
-                    {
-                        string statusLower = wargaTerpilih.statusKeluarga;
-                        transform(statusLower.begin(), statusLower.end(), statusLower.begin(), ::tolower);
-
-                        if (statusLower != "yatim" && statusLower != "bukan")
                         {
-                            cout << "Status harus 'Yatim' atau 'Bukan'!" << endl;
-                            wargaTerpilih.statusKeluarga.clear();
-                        }
-                        else
+                        case 1:
                         {
-                            wargaTerpilih.statusKeluarga[0] = toupper(wargaTerpilih.statusKeluarga[0]);
-                            for (size_t i = 1; i < wargaTerpilih.statusKeluarga.size(); i++)
+                            string namaLama = wargaTerpilih.nama;
+            
+                            // Input nama baru
+                            string namaBaru;
+                            do
                             {
-                                wargaTerpilih.statusKeluarga[i] = tolower(wargaTerpilih.statusKeluarga[i]);
+                                cout << "Nama saat ini: " << wargaTerpilih.nama << endl;
+                                cout << "Masukkan nama baru: ";
+                                getline(cin, namaBaru);
+            
+                                if (namaBaru.empty())
+                                {
+                                    cout << "Nama tidak boleh kosong!" << endl;
+                                }
+                                else if (any_of(namaBaru.begin(), namaBaru.end(), ::isdigit))
+                                {
+                                    cout << "Nama tidak boleh mengandung angka!" << endl;
+                                    namaBaru.clear();
+                                }
+                            } while (namaBaru.empty());
+            
+                            // Jika nama diubah, kita perlu reinsert node karena nama adalah key
+                            if (namaLama != namaBaru)
+                            {
+                                Warga wargaTemp = wargaTerpilih;
+                                wargaTemp.nama = namaBaru;
+                                rtTerpilih.hapusWarga(namaLama);
+                                rtTerpilih.tambahWarga(wargaTemp);
+                                TreeNode* foundNode = rtTerpilih.cariWarga(rtTerpilih.root, namaBaru);
+                                if (foundNode != nullptr) {
+                                    wargaTerpilih = foundNode->data;
+                                }
                             }
+            
+                            PerubahanData perubahan;
+                            time_t now = time(0);
+                            perubahan.waktu = ctime(&now);
+                            perubahan.rt = rtTerpilih.nama;
+                            perubahan.namaWarga = namaBaru;
+                            perubahan.aksi = "EDIT";
+                            perubahan.fieldDiubah = "Nama";
+                            perubahan.nilaiLama = namaLama;
+                            perubahan.nilaiBaru = namaBaru;
+                            wilayah.tambahRiwayat(perubahan);
+                            break;
                         }
-                    }
-                } while (wargaTerpilih.statusKeluarga.empty());
-                break;
-            }
-            case 5:
-            {
-                do
-                {
-                    cout << "Alamat saat ini: " << wargaTerpilih.alamat << endl;
-                    cout << "Masukkan alamat baru: ";
-                    getline(cin, wargaTerpilih.alamat);
-
-                    if (wargaTerpilih.alamat.empty())
-                    {
-                        cout << "Alamat tidak boleh kosong!" << endl;
-                    }
-                } while (wargaTerpilih.alamat.empty());
-                break;
-            }
-            }
+                        case 2:
+                        {
+                            int umurLama = wargaTerpilih.umur;
+                            int umurBaru;
+                            do
+                            {
+                                cout << "Umur saat ini: " << wargaTerpilih.umur << endl;
+                                cout << "Masukkan umur baru: ";
+                                while (!(cin >> umurBaru))
+                                {
+                                    cin.clear();
+                                    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                                    cout << "Input harus angka! Masukkan umur: ";
+                                }
+                                cin.ignore();
+            
+                                if (umurBaru < 0 || umurBaru > 120)
+                                {
+                                    cout << "Umur tidak valid (0-120 tahun)!" << endl;
+                                }
+                            } while (umurBaru < 0 || umurBaru > 120);
+                            wargaTerpilih.umur = umurBaru;
+            
+                            PerubahanData perubahan;
+                            time_t now = time(0);
+                            perubahan.waktu = ctime(&now);
+                            perubahan.rt = rtTerpilih.nama;
+                            perubahan.namaWarga = wargaTerpilih.nama;
+                            perubahan.aksi = "EDIT";
+                            perubahan.fieldDiubah = "Umur";
+                            perubahan.nilaiLama = to_string(umurLama);
+                            perubahan.nilaiBaru = to_string(umurBaru);
+                            wilayah.tambahRiwayat(perubahan);
+                            break;
+                        }
+                        case 3:
+                        {
+                            int penghasilanLama = wargaTerpilih.penghasilan;
+                            int penghasilanBaru;
+                            do
+                            {
+                                cout << "Penghasilan saat ini: " << wargaTerpilih.penghasilan << endl;
+                                cout << "Masukkan penghasilan baru: ";
+                                while (!(cin >> penghasilanBaru))
+                                {
+                                    cin.clear();
+                                    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                                    cout << "Input harus angka! Masukkan penghasilan: ";
+                                }
+                                cin.ignore();
+            
+                                if (penghasilanBaru < 0)
+                                {
+                                    cout << "Penghasilan tidak boleh negatif!" << endl;
+                                }
+                            } while (penghasilanBaru < 0);
+                            wargaTerpilih.penghasilan = penghasilanBaru;
+            
+                            PerubahanData perubahan;
+                            time_t now = time(0);
+                            perubahan.waktu = ctime(&now);
+                            perubahan.rt = rtTerpilih.nama;
+                            perubahan.namaWarga = wargaTerpilih.nama;
+                            perubahan.aksi = "EDIT";
+                            perubahan.fieldDiubah = "Penghasilan";
+                            perubahan.nilaiLama = to_string(penghasilanLama);
+                            perubahan.nilaiBaru = to_string(penghasilanBaru);
+                            wilayah.tambahRiwayat(perubahan);
+                            break;
+                        }
+                        case 4:
+                        {
+                            string statusLama = wargaTerpilih.statusKeluarga;
+                            string statusBaru;
+                            do
+                            {
+                                cout << "Status Keluarga saat ini: " << wargaTerpilih.statusKeluarga << endl;
+                                cout << "Masukkan status keluarga baru (Yatim/Bukan): ";
+                                getline(cin, statusBaru);
+            
+                                if (statusBaru.empty())
+                                {
+                                    cout << "Status Keluarga tidak boleh kosong!" << endl;
+                                }
+                                else
+                                {
+                                    string statusLower = statusBaru;
+                                    transform(statusLower.begin(), statusLower.end(), statusLower.begin(), ::tolower);
+            
+                                    if (statusLower != "yatim" && statusLower != "bukan")
+                                    {
+                                        cout << "Status harus 'Yatim' atau 'Bukan'!" << endl;
+                                        statusBaru.clear();
+                                    }
+                                    else
+                                    {
+                                        statusBaru[0] = toupper(statusBaru[0]);
+                                        for (size_t i = 1; i < statusBaru.size(); i++)
+                                        {
+                                            statusBaru[i] = tolower(statusBaru[i]);
+                                        }
+                                    }
+                                }
+                            } while (statusBaru.empty());
+                            wargaTerpilih.statusKeluarga = statusBaru;
+            
+                            PerubahanData perubahan;
+                            time_t now = time(0);
+                            perubahan.waktu = ctime(&now);
+                            perubahan.rt = rtTerpilih.nama;
+                            perubahan.namaWarga = wargaTerpilih.nama;
+                            perubahan.aksi = "EDIT";
+                            perubahan.fieldDiubah = "Status Keluarga";
+                            perubahan.nilaiLama = statusLama;
+                            perubahan.nilaiBaru = statusBaru;
+                            wilayah.tambahRiwayat(perubahan);
+                            break;
+                        }
+                        case 5:
+                        {
+                            string alamatLama = wargaTerpilih.alamat;
+                            string alamatBaru;
+                            do
+                            {
+                                cout << "Alamat saat ini: " << wargaTerpilih.alamat << endl;
+                                cout << "Masukkan alamat baru: ";
+                                getline(cin, alamatBaru);
+            
+                                if (alamatBaru.empty())
+                                {
+                                    cout << "Alamat tidak boleh kosong!" << endl;
+                                }
+                            } while (alamatBaru.empty());
+                            wargaTerpilih.alamat = alamatBaru;
+            
+                            PerubahanData perubahan;
+                            time_t now = time(0);
+                            perubahan.waktu = ctime(&now);
+                            perubahan.rt = rtTerpilih.nama;
+                            perubahan.namaWarga = wargaTerpilih.nama;
+                            perubahan.aksi = "EDIT";
+                            perubahan.fieldDiubah = "Alamat";
+                            perubahan.nilaiLama = alamatLama;
+                            perubahan.nilaiBaru = alamatBaru;
+                            wilayah.tambahRiwayat(perubahan);
+                            break;
+                        }
+                        }
 
             // Update kategori setelah edit
             string statusLower = wargaTerpilih.statusKeluarga;
@@ -874,6 +922,13 @@ void hapusDataWarga(Wilayah &wilayah)
     }
 }
 
+void lihatRiwayatPerubahan(Wilayah &wilayah)
+{
+    system("cls");
+    cout << "====== RIWAYAT PERUBAHAN DATA ======" << endl;
+    wilayah.tampilkanRiwayat();
+}   
+
 void kelolaWarga(Wilayah &wilayah)
 {
     bool running = true;
@@ -985,10 +1040,10 @@ int main()
             cout << "Fitur ini sedang dalam pengembangan" << endl;
             break;
         case 4:
-            cout << "Fitur ini sedang dalam pengembangan" << endl;
+            lihatRiwayatPerubahan(wilayah);
             break;
         case 5:
-            cout << "Ciao." << endl;
+            cout << "Happy Nice Day!" << endl;
             running = false;
             break;
 
