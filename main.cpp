@@ -447,7 +447,7 @@ void inputDataWarga(Wilayah &wilayah)
             perubahan.fieldDiubah = "Semua Data";
             
             wilayah.tambahRiwayat(perubahan);
-            
+
             do
             {
                 cout << "Tambah warga lagi? (Y/N): ";
@@ -543,7 +543,7 @@ void editDataWarga(Wilayah &wilayah)
             cout << "Penghasilan: " << wargaTerpilih.penghasilan << endl;
             cout << "Status Keluarga: " << wargaTerpilih.statusKeluarga << endl;
             cout << "Alamat: " << wargaTerpilih.alamat << endl
-                 << endl;
+                << endl;
 
             cout << "Pilih data yang ingin diedit:" << endl;
             cout << "1. Nama" << endl;
@@ -571,6 +571,19 @@ void editDataWarga(Wilayah &wilayah)
             case 1:
             {
                 string namaLama = wargaTerpilih.nama;
+
+                PerubahanData perubahan;
+                time_t now = time(0);
+                perubahan.waktu = ctime(&now);
+                perubahan.rt = rtTerpilih.nama;
+                perubahan.namaWarga = wargaTerpilih.nama;
+                perubahan.aksi = "EDIT";
+                perubahan.fieldDiubah = "Nama";
+                perubahan.nilaiLama = wargaTerpilih.nama; 
+                perubahan.nilaiBaru = "-"; // Nilai baru akan diisi setelah input
+                wilayah.tambahRiwayat(perubahan);   
+                // Input nama baru
+
                 do
                 {
                     cout << "Nama saat ini: " << wargaTerpilih.nama << endl;
@@ -599,6 +612,20 @@ void editDataWarga(Wilayah &wilayah)
             }
             case 2:
             {
+
+                int umurLama = wargaTerpilih.umur;
+
+                PerubahanData perubahan;
+                time_t now = time(0);
+                perubahan.waktu = ctime(&now);
+                perubahan.rt = rtTerpilih.nama;
+                perubahan.namaWarga = wargaTerpilih.nama;
+                perubahan.aksi = "EDIT";
+                perubahan.fieldDiubah = "Umur";
+                perubahan.nilaiLama = to_string(wargaTerpilih.umur);
+                perubahan.nilaiBaru = "-";
+
+                wilayah.tambahRiwayat(perubahan);
                 do
                 {
                     cout << "Umur saat ini: " << wargaTerpilih.umur << endl;
@@ -816,7 +843,7 @@ void hapusDataWarga(Wilayah &wilayah)
             cout << "Nama Warga: " << wargaTerpilih.nama << endl;
             cout << "Alamat: " << wargaTerpilih.alamat << endl;
             cout << "Kategori: " << wargaTerpilih.kategori << endl
-                 << endl;
+                << endl;
 
             cout << "Apakah Anda yakin ingin menghapus data ini? (Y/N): ";
             cin >> konfirmasi;
@@ -829,6 +856,17 @@ void hapusDataWarga(Wilayah &wilayah)
 
         if (konfirmasi == 'Y')
         {
+            PerubahanData perubahan;
+            time_t now = time(0);
+            perubahan.waktu = ctime(&now);
+            perubahan.rt = rtTerpilih.nama;
+            perubahan.namaWarga = wargaTerpilih.nama;   
+            perubahan.aksi = "HAPUS";
+            perubahan.fieldDiubah = "Semua Data";
+            perubahan.nilaiLama = "-"; 
+            perubahan.nilaiBaru = "-"; 
+            wilayah.tambahRiwayat(perubahan);
+
             rtTerpilih.hapusWarga(wargaTerpilih.nama);
             cout << "Data warga berhasil dihapus." << endl;
             return;
