@@ -7,6 +7,8 @@
 #include <algorithm>
 #include "json.hpp"
 #include <fstream>
+#include <ctime>
+#include <stack>
 
 using json = nlohmann::json;
 
@@ -30,6 +32,18 @@ struct TreeNode
     TreeNode(const Warga &warga)
         : data(warga), left(nullptr), right(nullptr) {}
 };
+
+struct PerubahanData
+{
+    string waktu;
+    string rt;
+    string namaWarga;
+    string fieldDiubah;
+    string nilaiLama;
+    string nilaiBaru;
+    string aksi;
+};
+
 struct RT
 {
     string nama;
@@ -96,13 +110,13 @@ struct RT
         inOrderTraversal(node->left, counter);
 
         cout << "  " << counter++ << ". Nama: " << node->data.nama << "\n"
-             << "     Umur: " << node->data.umur << "\n"
-             << "     Penghasilan: " << node->data.penghasilan << "\n"
-             << "     Status Keluarga: " << node->data.statusKeluarga << "\n"
-             << "     Alamat: " << node->data.alamat << "\n"
-             << "     Kategori: " << node->data.kategori
-             << endl
-             << endl;
+        << "     Umur: " << node->data.umur << "\n"
+        << "     Penghasilan: " << node->data.penghasilan << "\n"
+        << "     Status Keluarga: " << node->data.statusKeluarga << "\n"
+        << "     Alamat: " << node->data.alamat << "\n"
+        << "     Kategori: " << node->data.kategori
+        << endl
+        << endl;
 
         inOrderTraversal(node->right, counter);
     }
@@ -204,6 +218,7 @@ struct Wilayah
 {
     string nama;
     vector<RT> rtList;
+    stack<PerubahanData> riwayatPerubahan;
 
     Wilayah(const string &nama) : nama(nama) {}
 
@@ -224,7 +239,7 @@ struct Wilayah
         for (size_t i = 0; i < rtList.size(); ++i)
         {
             cout << "  " << (i + 1) << ". " << rtList[i].nama << " ("
-                 << rtList[i].countWarga() << " warga)" << endl;
+                << rtList[i].countWarga() << " warga)" << endl;
         }
     }
 
@@ -235,6 +250,48 @@ struct Wilayah
         {
             cout << rt.nama << ":" << endl;
             rt.tampilkanWarga();
+        }
+    }
+
+    void tambahRiwayat(const PerubahanData &perubahan)
+    {
+        riwayatPerubahan.push(perubahan);
+    }
+
+    void tampilkanRiwayat() const{
+        if (riwayatPerubahan.empty())
+        {
+            cout << "Tidak ada riwayat perubahan data." << endl;
+            return;
+        }
+
+        stack <PerubahanData> tempStack = riwayatPerubahan;
+        vector<PerubahanData> riwayatTerbalik;
+
+        while (!tempStack.empty()) {
+            riwayatTerbalik.push_back(tempStack.top());
+            tempStack.pop();
+        }
+
+        cout << "Riwayat Perubahan Data:" << endl;
+        for (auto it = riwayatTerbalik.rbegin(); it != riwayatTerbalik.rend(); ++it) {
+            const auto &perubahan = *it;
+            cout << "  Waktu: " << perubahan.waktu << endl;
+            cout << "  RT: " << perubahan.rt << endl;
+            cout << "  Nama Warga: " << perubahan.namaWarga << endl;
+            cout << "  Aksi: " << perubahan.aksi << endl;
+
+            if (perubahan.aksi == "EDIT") {
+                cout << "  Field yang diubah: " << perubahan.fieldDiubah << endl;
+                cout << "  Nilai Lama: " << perubahan.nilaiLama << endl;
+                cout << "  Nilai Baru: " << perubahan.nilaiBaru << endl;
+            } else if (perubahan.aksi == "HAPUS") {
+                cout << "  Data dihapus" << endl;
+                cout << "  Nilai Lama: " << perubahan.nilaiLama << endl;
+                cout << "  Nilai Baru: " << perubahan.nilaiBaru << endl;
+            }
+
+            cout << "  ------------------------" << endl;
         }
     }
 };
@@ -258,7 +315,7 @@ void inputDataWarga(Wilayah &wilayah)
         cout << "Pilih RT (nomor): ";
 
         int pilihanRt;
-        while (!(cin >> pilihanRt) || pilihanRt < 0 || pilihanRt > wilayah.rtList.size())
+        while (!(cin >> pilihanRt) || pilihanRt < 0 || static_cast<size_t>(pilihanRt) > wilayah.rtList.size())
         {
             cin.clear();
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
@@ -379,6 +436,18 @@ void inputDataWarga(Wilayah &wilayah)
             rtTerpilih.tambahWarga(wargaBaru);
             cout << "Warga " << wargaBaru.nama << " berhasil ditambahkan!" << endl;
 
+            PerubahanData perubahan;
+            time_t now = time(0);
+            perubahan.waktu = ctime(&now);
+            perubahan.rt = rtTerpilih.nama;
+            perubahan.namaWarga = wargaBaru.nama;
+            perubahan.aksi = "TAMBAH";
+            perubahan.nilaiLama = "-";
+            perubahan.nilaiBaru = wargaBaru.kategori;
+            perubahan.fieldDiubah = "Semua Data";
+            
+            wilayah.tambahRiwayat(perubahan);
+            
             do
             {
                 cout << "Tambah warga lagi? (Y/N): ";
@@ -686,7 +755,7 @@ void hapusDataWarga(Wilayah &wilayah)
 
         if (pilihanRt == 0)
             return;
-        if (pilihanRt < 1 || pilihanRt > wilayah.rtList.size())
+        if (pilihanRt < 1 || static_cast<size_t>(pilihanRt) > wilayah.rtList.size())
         {
             cout << "RT tidak valid!" << endl;
             system("pause");
@@ -824,6 +893,7 @@ void kelolaWarga(Wilayah &wilayah)
         system("pause");
     }
 }
+
 
 int main()
 {

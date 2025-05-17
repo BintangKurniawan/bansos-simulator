@@ -59,6 +59,14 @@
     "text_encoding": "cpp",
     "typeinfo": "cpp",
     "valarray": "cpp",
-    "variant": "cpp"
+    "variant": "cpp",
+    "list": "cpp",
+    "xstring": "cpp",
+    "filesystem": "cpp",
+    "stack": "cpp",
+    "xhash": "cpp",
+    "xlocinfo": "cpp",
+    "xtree": "cpp",
+    "xutility": "cpp"
   }
 }
