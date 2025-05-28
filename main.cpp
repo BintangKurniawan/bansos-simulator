@@ -16,6 +16,12 @@ using json = nlohmann::json;
 
 using namespace std;
 
+struct Bantuan
+{
+    string jenis;
+    string tanggal;
+};
+
 struct Warga
 {
     string nama;
@@ -24,6 +30,8 @@ struct Warga
     string statusKeluarga;
     string alamat;
     string kategori;
+
+    vector<Bantuan> daftarBantuan;
 };
 struct TreeNode
 {
@@ -1087,6 +1095,125 @@ void buatAntrianDariWarga(const Wilayah &wilayah)
     cout << "Antrian berhasil dibuat dari data warga!" << endl;
 }
 
+void menuDataWargaDanBantuan(Wilayah &wilayah)
+{
+    while (true)
+    {
+        system("cls");
+        cout << "====== DATA WARGA & BANTUAN ======" << endl;
+        if (wilayah.rtList.empty())
+        {
+            cout << "Tidak ada RT tersedia!" << endl;
+            system("pause");
+            return;
+        }
+
+        wilayah.tampilkanRt();
+        cout << "0. Kembali ke menu utama\nPilih RT (nomor): ";
+        int pilihanRt;
+        if (!(cin >> pilihanRt))
+        {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cout << "Input tidak valid!" << endl;
+            system("pause");
+            continue;
+        }
+        if (pilihanRt == 0)
+            return;
+
+        if (pilihanRt < 1 || pilihanRt > wilayah.rtList.size())
+        {
+            cout << "RT tidak valid!" << endl;
+            system("pause");
+            continue;
+        }
+
+        RT &rtTerpilih = wilayah.rtList[pilihanRt - 1];
+        if (rtTerpilih.countWarga() == 0)
+        {
+            cout << "RT ini tidak memiliki warga!" << endl;
+            system("pause");
+            continue;
+        }
+
+        while (true)
+        {
+            system("cls");
+            cout << "Daftar Warga di RT " << rtTerpilih.nama << ":\n";
+            rtTerpilih.tampilkanWarga();
+            cout << "0. Kembali\nPilih warga (nomor): ";
+            int pilihanWarga;
+            if (!(cin >> pilihanWarga))
+            {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                cout << "Input tidak valid!" << endl;
+                system("pause");
+                continue;
+            }
+            if (pilihanWarga == 0)
+                break; // kembali ke pilih RT
+
+            int index = 0;
+            TreeNode *nodeWarga = rtTerpilih.cariWargaByIndex(rtTerpilih.root, pilihanWarga - 1, index);
+            if (!nodeWarga)
+            {
+                cout << "Warga tidak ditemukan!" << endl;
+                system("pause");
+                continue;
+            }
+
+            // Tampilkan detail warga dan daftar bantuannya
+            system("cls");
+            cout << "Detail Warga:\n";
+            cout << "Nama: " << nodeWarga->data.nama << endl;
+            cout << "Daftar Bantuan:\n";
+
+            if (nodeWarga->data.daftarBantuan.empty())
+            {
+                cout << "  - Belum ada bantuan yang tercatat.\n";
+            }
+            else
+            {
+                int no = 1;
+                for (const auto &bantuan : nodeWarga->data.daftarBantuan)
+                {
+                    cout << "  " << no++ << ". " << bantuan.jenis << " (Tanggal: " << bantuan.tanggal << ")\n";
+                }
+            }
+
+            cout << "\n1. Tambah bantuan baru\n0. Kembali ke daftar warga\nPilih opsi: ";
+            int opsi;
+            if (!(cin >> opsi))
+            {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                cout << "Input tidak valid!" << endl;
+                system("pause");
+                continue;
+            }
+
+            if (opsi == 0)
+                continue; // kembali ke daftar warga
+
+            if (opsi == 1)
+            {
+                cin.ignore(); // buang newline
+                Bantuan bantuan;
+                cout << "Masukkan jenis bantuan (contoh: Sembako, Uang, dll): ";
+                getline(cin, bantuan.jenis);
+                cout << "Masukkan tanggal bantuan (DD-MM-YYYY): ";
+                getline(cin, bantuan.tanggal);
+                nodeWarga->data.daftarBantuan.push_back(bantuan);
+
+                cout << "Bantuan berhasil didaftarkan untuk " << nodeWarga->data.nama << "!" << endl;
+                system("pause");
+            }
+        }
+    }
+}
+
 int main()
 {
     Wilayah wilayah("Kelurahan Caringin");
@@ -1107,7 +1234,7 @@ int main()
         system("cls");
         cout << "====== APLIKASI PENDATAAN BANSOS ======" << endl;
         cout << "Wilayah: " << wilayah.nama << endl
-            << endl;
+             << endl;
         cout << "1. Kelola Data Warga" << endl;
         cout << "2. Daftarkan Bantuan untuk Warga" << endl;
         cout << "3. Lihat Antrian Penerima Bantuan" << endl;
@@ -1133,7 +1260,7 @@ int main()
             kelolaWarga(wilayah);
             break;
         case 2:
-            cout << "Fitur ini sedang dalam pengembangan" << endl;
+            menuDataWargaDanBantuan(wilayah);
             break;
         case 3:
             system("cls");
