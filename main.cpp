@@ -1153,7 +1153,7 @@ void menuDataWargaDanBantuan(Wilayah &wilayah)
                 continue;
             }
             if (pilihanWarga == 0)
-                break; // kembali ke pilih RT
+                break;
 
             int index = 0;
             TreeNode *nodeWarga = rtTerpilih.cariWargaByIndex(rtTerpilih.root, pilihanWarga - 1, index);
@@ -1195,11 +1195,11 @@ void menuDataWargaDanBantuan(Wilayah &wilayah)
             }
 
             if (opsi == 0)
-                continue; // kembali ke daftar warga
+                continue;
 
             if (opsi == 1)
             {
-                cin.ignore(); // buang newline
+                cin.ignore();
                 Bantuan bantuan;
                 cout << "Masukkan jenis bantuan (contoh: Sembako, Uang, dll): ";
                 getline(cin, bantuan.jenis);
@@ -1242,17 +1242,35 @@ int main()
         cout << "5. Keluar" << endl;
         cout << "Pilihan menu (1-5): ";
 
-        int pilihan;
-        cin >> pilihan;
+        string inputString;
+        getline(cin, inputString);
 
-        if (cin.fail())
+        if (inputString.empty())
         {
-            cin.clear();
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cout << "Tidak ada input." << endl;
+            system("pause");
+            continue;
+        }
+
+        // Cek apakah input adalah angka valid
+        bool isValid = true;
+        for (char c : inputString)
+        {
+            if (!isdigit(c))
+            {
+                isValid = false;
+                break;
+            }
+        }
+
+        if (!isValid)
+        {
             cout << "Input tidak valid. Masukkan angka saja!" << endl;
             system("pause");
             continue;
         }
+
+        int pilihan = stoi(inputString);
 
         switch (pilihan)
         {
