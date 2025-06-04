@@ -1266,6 +1266,124 @@ void statistikBantuanPerRT(const Wilayah &wilayah)
     }
 }
 
+void kelolaWilayah(Wilayah &wilayah)
+{
+    bool running = true;
+    while (running)
+    {
+        system("cls");
+        cout << "====== KELOLA DATA WILAYAH ======" << endl;
+        cout << "Wilayah: " << wilayah.nama << endl;
+        cout << "1. Tambah RT" << endl;
+        cout << "2. Lihat Daftar RT" << endl;
+        cout << "3. Kembali ke menu utama" << endl;
+        cout << "Pilihan menu (1-3): ";
+
+        int pilihan;
+        string inputString;
+        getline(cin, inputString);
+
+        if (inputString.empty() || !(stringstream(inputString) >> pilihan) || pilihan < 1 || pilihan > 3)
+        {
+            cout << "Input tidak valid. Masukkan angka antara 1-3!" << endl;
+            system("pause");
+            continue;
+        }
+
+        switch (pilihan)
+        {
+        case 1:
+        {
+            system("cls");
+            int nomorRt;
+            bool validNomorRt = false;
+
+            while (!validNomorRt)
+            {
+                cout << "Masukkan nomor RT yang akan ditambahkan (ketik 0 untuk kembali): ";
+
+                string inputString;
+                getline(cin, inputString);
+
+                if (inputString == "0")
+                {
+                    cout << "Kembali ke menu utama." << endl;
+                    return;
+                }
+
+                if (inputString.empty())
+                {
+                    cout << "Input tidak valid! Harap masukkan angka yang benar!" << endl;
+                    system("pause");
+                    system("cls");
+                    continue;
+                }
+
+                stringstream ss(inputString);
+                if (!(ss >> nomorRt))
+                {
+                    cout << "Input tidak valid! Harap masukkan angka yang benar!" << endl;
+                    system("pause");
+                    system("cls");
+                    continue;
+                }
+                else
+                {
+                    if (nomorRt <= 0)
+                    {
+                        cout << "Nomor RT harus lebih besar dari 0!" << endl;
+                        system("pause");
+                        system("cls");
+                    }
+                    else
+                    {
+                        stringstream ss;
+                        ss << setw(2) << setfill('0') << nomorRt;
+                        string namaRt = "RT " + ss.str();
+
+                        bool rtExists = false;
+                        for (const auto &rt : wilayah.rtList)
+                        {
+                            if (rt.nama == namaRt)
+                            {
+                                rtExists = true;
+                                break;
+                            }
+                        }
+
+                        if (rtExists)
+                        {
+                            cout << "RT dengan nama '" << namaRt << "' sudah ada! Silakan masukkan nomor yang berbeda." << endl;
+                            system("pause");
+                            system("cls");
+                        }
+                        else
+                        {
+                            validNomorRt = true;
+                            wilayah.tambahRt(RT(namaRt));
+                            cout << namaRt << " berhasil ditambahkan!" << endl;
+                            system("pause");
+                        }
+                    }
+                }
+            }
+            break;
+        }
+        case 2:
+            system("cls");
+            wilayah.tampilkanRt();
+            system("pause");
+            break;
+        case 3:
+            running = false;
+            break;
+        default:
+            cout << "Pilihan menu tidak valid!" << endl;
+            break;
+        }
+    }
+}
+
 int main()
 {
     Wilayah wilayah("Kelurahan Caringin");
@@ -1291,9 +1409,10 @@ int main()
         cout << "2. Daftarkan Bantuan untuk Warga" << endl;
         cout << "3. Lihat Antrian Penerima Bantuan" << endl;
         cout << "4. Lihat Riwayat Perubahan Data" << endl;
-        cout << "5. Statistik Bantuan Per RT" << endl;
-        cout << "6. Keluar" << endl;
-        cout << "Pilihan menu (1-5): ";
+        cout << "5. Kelola Data Wilayah" << endl;
+        cout << "6. Statistik Bantuan Per RT" << endl;
+        cout << "7. Keluar" << endl;
+        cout << "Pilihan menu (1-7): ";
 
         string inputString;
         getline(cin, inputString);
@@ -1345,9 +1464,12 @@ int main()
             lihatRiwayatPerubahan(wilayah);
             break;
         case 5:
-            statistikBantuanPerRT(wilayah);
+            kelolaWilayah(wilayah);
             break;
         case 6:
+            statistikBantuanPerRT(wilayah);
+            break;
+        case 7:
             cout << "Happy Nice Day!" << endl;
             running = false;
             break;
