@@ -11,6 +11,7 @@
 #include <fstream>
 #include <ctime>
 #include <stack>
+#include <regex>
 
 using json = nlohmann::json;
 
@@ -1111,10 +1112,21 @@ void menuDataWargaDanBantuan(Wilayah &wilayah)
         wilayah.tampilkanRt();
         cout << "0. Kembali ke menu utama\nPilih RT (nomor): ";
         int pilihanRt;
-        if (!(cin >> pilihanRt))
+        string inputRt;
+        getline(cin, inputRt);
+        // Validasi input kosong/spasi
+        if (inputRt.empty() || all_of(inputRt.begin(), inputRt.end(), ::isspace))
         {
-            cin.clear();
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cout << "Input tidak boleh kosong!" << endl;
+            system("pause");
+            continue;
+        }
+        try
+        {
+            pilihanRt = stoi(inputRt);
+        }
+        catch (...)
+        {
             cout << "Input tidak valid!" << endl;
             system("pause");
             continue;
@@ -1144,10 +1156,21 @@ void menuDataWargaDanBantuan(Wilayah &wilayah)
             rtTerpilih.tampilkanWarga();
             cout << "0. Kembali\nPilih warga (nomor): ";
             int pilihanWarga;
-            if (!(cin >> pilihanWarga))
+            string inputWarga;
+            getline(cin, inputWarga);
+
+            if (inputWarga.empty() || all_of(inputWarga.begin(), inputWarga.end(), ::isspace))
             {
-                cin.clear();
-                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                cout << "Input tidak boleh kosong!" << endl;
+                system("pause");
+                continue;
+            }
+            try
+            {
+                pilihanWarga = stoi(inputWarga);
+            }
+            catch (...)
+            {
                 cout << "Input tidak valid!" << endl;
                 system("pause");
                 continue;
@@ -1164,47 +1187,112 @@ void menuDataWargaDanBantuan(Wilayah &wilayah)
                 continue;
             }
 
-            // Tampilkan detail warga dan daftar bantuannya
-            system("cls");
-            cout << "Detail Warga:\n";
-            cout << "Nama: " << nodeWarga->data.nama << endl;
-            cout << "Daftar Bantuan:\n";
+            int opsi;
+            while (true)
+            {
+                system("cls");
+                cout << "Detail Warga:\n";
+                cout << "Nama: " << nodeWarga->data.nama << endl;
+                cout << "Daftar Bantuan:\n";
 
-            if (nodeWarga->data.daftarBantuan.empty())
-            {
-                cout << "  - Belum ada bantuan yang tercatat.\n";
-            }
-            else
-            {
-                int no = 1;
-                for (const auto &bantuan : nodeWarga->data.daftarBantuan)
+                if (nodeWarga->data.daftarBantuan.empty())
                 {
-                    cout << "  " << no++ << ". " << bantuan.jenis << " (Tanggal: " << bantuan.tanggal << ")\n";
+                    cout << "  - Belum ada bantuan yang tercatat.\n";
+                }
+                else
+                {
+                    int no = 1;
+                    for (const auto &bantuan : nodeWarga->data.daftarBantuan)
+                    {
+                        cout << "  " << no++ << ". " << bantuan.jenis << " (Tanggal: " << bantuan.tanggal << ")\n";
+                    }
+                }
+
+                cout << "\n1. Tambah bantuan baru\n0. Kembali ke daftar warga\nPilih opsi: ";
+                string inputOpsi;
+                getline(cin, inputOpsi);
+
+                if (inputOpsi.empty() || all_of(inputOpsi.begin(), inputOpsi.end(), ::isspace))
+                {
+                    cout << "Input tidak boleh kosong!" << endl;
+                    system("pause");
+                    continue;
+                }
+
+                try
+                {
+                    opsi = stoi(inputOpsi);
+                    break;
+                }
+                catch (...)
+                {
+                    cout << "Input tidak valid!" << endl;
+                    system("pause");
+                    continue;
                 }
             }
-
-            cout << "\n1. Tambah bantuan baru\n0. Kembali ke daftar warga\nPilih opsi: ";
-            int opsi;
-            if (!(cin >> opsi))
-            {
-                cin.clear();
-                cin.ignore(numeric_limits<streamsize>::max(), '\n');
-                cout << "Input tidak valid!" << endl;
-                system("pause");
-                continue;
-            }
-
             if (opsi == 0)
                 continue;
 
             if (opsi == 1)
             {
-                cin.ignore();
                 Bantuan bantuan;
-                cout << "Masukkan jenis bantuan (contoh: Sembako, Uang, dll): ";
-                getline(cin, bantuan.jenis);
-                cout << "Masukkan tanggal bantuan (DD-MM-YYYY): ";
-                getline(cin, bantuan.tanggal);
+
+                // Validasi jenis bantuan
+                while (true)
+                {
+                    cout << "Masukkan jenis bantuan (Sembako, Uang, Pakaian): ";
+                    getline(cin, bantuan.jenis);
+
+                    if (bantuan.jenis.empty() || all_of(bantuan.jenis.begin(), bantuan.jenis.end(), ::isspace))
+                    {
+                        cout << "Input tidak boleh kosong. Silakan masukkan jenis bantuan.\n";
+                        continue;
+                    }
+
+                    string lowerJenis = bantuan.jenis;
+                    transform(lowerJenis.begin(), lowerJenis.end(), lowerJenis.begin(), ::tolower);
+
+                    if (lowerJenis == "sembako")
+                    {
+                        bantuan.jenis = "Sembako";
+                        break;
+                    }
+                    else if (lowerJenis == "uang")
+                    {
+                        bantuan.jenis = "Uang";
+                        break;
+                    }
+                    else if (lowerJenis == "pakaian")
+                    {
+                        bantuan.jenis = "Pakaian";
+                        break;
+                    }
+                    else
+                    {
+                        cout << "Jenis bantuan tidak valid. Hanya boleh: Sembako, Uang, Pakaian.\n";
+                    }
+                }
+
+                // Validasi tanggal
+                while (true)
+                {
+                    cout << "Masukkan tanggal bantuan (DD-MM-YYYY): ";
+                    getline(cin, bantuan.tanggal);
+
+                    if (bantuan.tanggal.empty())
+                    {
+                        cout << "Input tidak boleh kosong. Silakan masukkan tanggal.\n";
+                        continue;
+                    }
+
+                    regex tanggalRegex(R"(^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-(20\d{2})$)");
+                    if (regex_match(bantuan.tanggal, tanggalRegex))
+                        break;
+                    else
+                        cout << "Format tanggal tidak valid.\n";
+                }
+
                 nodeWarga->data.daftarBantuan.push_back(bantuan);
 
                 cout << "Bantuan berhasil didaftarkan untuk " << nodeWarga->data.nama << "!" << endl;
