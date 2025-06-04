@@ -1214,6 +1214,58 @@ void menuDataWargaDanBantuan(Wilayah &wilayah)
     }
 }
 
+void statistikBantuanPerRT(const Wilayah &wilayah)
+{
+    system("cls");
+    cout << "====== STATISTIK BANTUAN PER RT ======" << endl;
+
+    if (wilayah.rtList.empty())
+    {
+        cout << "Tidak ada RT tersedia!" << endl;
+        return;
+    }
+
+    for (const auto &rt : wilayah.rtList)
+    {
+        cout << "\nRT: " << rt.nama << endl;
+
+        map<string, int> bantuanCounter;
+        int totalBantuan = 0;
+
+        function<void(TreeNode *)> traverse;
+        traverse = [&](TreeNode *node)
+        {
+            if (!node)
+                return;
+
+            traverse(node->left);
+
+            for (const auto &bantuan : node->data.daftarBantuan)
+            {
+                bantuanCounter[bantuan.jenis]++;
+                totalBantuan++;
+            }
+
+            traverse(node->right);
+        };
+
+        traverse(rt.root);
+
+        if (totalBantuan == 0)
+        {
+            cout << "  Belum ada bantuan yang tercatat." << endl;
+        }
+        else
+        {
+            cout << "  Total Bantuan Diberikan: " << totalBantuan << endl;
+            for (const auto &entry : bantuanCounter)
+            {
+                cout << "    - " << entry.first << ": " << entry.second << " kali" << endl;
+            }
+        }
+    }
+}
+
 int main()
 {
     Wilayah wilayah("Kelurahan Caringin");
@@ -1239,7 +1291,8 @@ int main()
         cout << "2. Daftarkan Bantuan untuk Warga" << endl;
         cout << "3. Lihat Antrian Penerima Bantuan" << endl;
         cout << "4. Lihat Riwayat Perubahan Data" << endl;
-        cout << "5. Keluar" << endl;
+        cout << "5. Statistik Bantuan Per RT" << endl;
+        cout << "6. Keluar" << endl;
         cout << "Pilihan menu (1-5): ";
 
         string inputString;
@@ -1292,6 +1345,9 @@ int main()
             lihatRiwayatPerubahan(wilayah);
             break;
         case 5:
+            statistikBantuanPerRT(wilayah);
+            break;
+        case 6:
             cout << "Happy Nice Day!" << endl;
             running = false;
             break;
