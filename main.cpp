@@ -552,7 +552,7 @@ void editDataWarga(Wilayah &wilayah)
         do
         {
             system("cls");
-            cout << "RT " << rtTerpilih.nama << endl;
+            cout << rtTerpilih.nama << endl;
             cout << "====== EDIT DATA WARGA ======" << endl;
             cout << "Nama: " << wargaTerpilih.nama << endl;
             cout << "Umur: " << wargaTerpilih.umur << endl;
@@ -709,7 +709,7 @@ void editDataWarga(Wilayah &wilayah)
                 string statusBaru;
                 do
                 {
-                    cout << "Status Keluarga saat ini: " << wargaTerpilih.statusKeluarga << endl;
+                    cout << "Status Keluarga saat ini (Yatim/Bukan): " << wargaTerpilih.statusKeluarga << endl;
                     cout << "Masukkan status keluarga baru (Yatim/Bukan): ";
                     getline(cin, statusBaru);
 
