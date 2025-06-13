@@ -789,7 +789,7 @@ void editDataWarga(Wilayah &wilayah)
 
             if (wargaTerpilih.umur > 60 ||
                 (statusLower == "yatim" && wargaTerpilih.umur < 18) ||
-                wargaTerpilih.penghasilan < 3370534)
+                wargaTerpilih.penghasilan < 100000)
             {
                 wargaTerpilih.kategori = "Prioritas";
             }
