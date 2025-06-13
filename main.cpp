@@ -789,7 +789,7 @@ void editDataWarga(Wilayah &wilayah)
 
             if (wargaTerpilih.umur > 60 ||
                 (statusLower == "yatim" && wargaTerpilih.umur < 18) ||
-                wargaTerpilih.penghasilan < 100000)
+                wargaTerpilih.penghasilan < 500000)
             {
                 wargaTerpilih.kategori = "Prioritas";
             }
@@ -1479,12 +1479,12 @@ int main()
     wilayah.tambahRt(RT("RT 02"));
     wilayah.tambahRt(RT("RT 03"));
 
-    wilayah.rtList[0].tambahWarga(Warga{"Asep", 19, 2000000, "Bukan", "Jl. Caringin No. 2", "Prioritas"});
-    wilayah.rtList[0].tambahWarga(Warga{"Budin", 17, 100000, "Yatim", "Jl. Caringin No. 3", "Prioritas"});
-    wilayah.rtList[1].tambahWarga(Warga{"Cecep", 68, 10000000, "Yatim", "Jl. Amba No. 3", "Prioritas"});
-    wilayah.rtList[1].tambahWarga(Warga{"Doni", 24, 100000, "Yatim", "Jl. Amba No. 2", "Reguler"});
-    wilayah.rtList[2].tambahWarga(Warga{"Edi", 35, 200000, "Yatim", "Jl. Nigerian No. 1", "Prioritas"});
-    wilayah.rtList[2].tambahWarga(Warga{"Feri", 18, 1400000, "Bukan", "Jl. Nigerian No. 2", "Prioritas"});
+    wilayah.rtList[0].tambahWarga(Warga{"Asep", 19, 20000, "Bukan", "Jl. Caringin No. 2", "Prioritas"});
+    wilayah.rtList[0].tambahWarga(Warga{"Budin", 17, 10000, "Yatim", "Jl. Caringin No. 3", "Prioritas"});
+    wilayah.rtList[1].tambahWarga(Warga{"Cecep", 68, 10000, "Yatim", "Jl. Amba No. 3", "Prioritas"});
+    wilayah.rtList[1].tambahWarga(Warga{"Doni", 24, 1000000, "Yatim", "Jl. Amba No. 2", "Reguler"});
+    wilayah.rtList[2].tambahWarga(Warga{"Edi", 35, 10000, "Yatim", "Jl. Nigerian No. 1", "Prioritas"});
+    wilayah.rtList[2].tambahWarga(Warga{"Feri", 18, 10000, "Bukan", "Jl. Nigerian No. 2", "Prioritas"});
 
     bool running = true;
     while (running)
