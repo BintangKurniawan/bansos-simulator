@@ -21,6 +21,7 @@ struct Bantuan
 {
     string jenis;
     string tanggal;
+    int nominal = 0;
 };
 
 struct Warga
@@ -387,7 +388,7 @@ struct RW
         inOrderTraversal(node->left, counter);
 
         cout << "  " << counter++ << "." << "\n"
-             << "     RT " << node->data.nama << "\n"
+             << "    " << node->data.nama << "\n"
 
              << endl;
 
@@ -1498,57 +1499,74 @@ void displayQueue(const Queue &q, const string &label)
 //     cout << "Antrian berhasil dibuat dari data warga!" << endl;
 // }
 
-void menuDataWargaDanBantuan(RW &rw)
+string toLower(const string &str)
+{
+    string result = str;
+    transform(result.begin(), result.end(), result.begin(), ::tolower);
+    return result;
+}
+
+string formatWilayah(const string &input, const string &prefix)
+{
+    if (all_of(input.begin(), input.end(), ::isdigit))
+    {
+        stringstream ss;
+        ss << prefix << " " << setw(2) << setfill('0') << stoi(input);
+        return ss.str();
+    }
+
+    string lower = toLower(input);
+    regex pattern(R"(rw\s*0?(\d+))");
+    smatch match;
+    if (prefix == "RW" && regex_match(lower, match, pattern))
+    {
+        int num = stoi(match[1]);
+        stringstream ss;
+        ss << prefix << " " << setw(2) << setfill('0') << num;
+        return ss.str();
+    }
+
+    return input;
+}
+
+bool cekKembaliKeMenuUtama(const string &input)
+{
+    return toLower(input) == "m";
+}
+
+void menuDataWargaDanBantuan(Kota &kota)
 {
     while (true)
     {
         system("cls");
-
-        cout << "====== DATA WARGA & BANTUAN ======" << endl;
-
-        rw.tampilkanRT();
-        cout << "0. Kembali ke menu utama\nPilih RT (nomor): ";
-        int pilihanRt;
-        string inputRt;
-        getline(cin, inputRt);
-        // Validasi input kosong/spasi
-        if (inputRt.empty() || all_of(inputRt.begin(), inputRt.end(), ::isspace))
-        {
-            cout << "Input tidak boleh kosong!" << endl;
-            system("pause");
-            continue;
-        }
-        try
-        {
-            pilihanRt = stoi(inputRt);
-        }
-        catch (...)
-        {
-            cout << "Input tidak valid!" << endl;
-            system("pause");
-            continue;
-        }
-        RT *rtPtr = rw.getRTByIndex(pilihanRt - 1);
-        if (rtPtr == nullptr)
-        {
-            cout << "Tidak ada RT tersedia!" << endl;
-            system("pause");
+        kota.tampilkanKecamatan();
+        cout << "Masukkan nama Kecamatan (0: kembali): ";
+        string inputKec;
+        getline(cin, inputKec);
+        if (inputKec == "0")
             return;
-        }
-        if (pilihanRt == 0)
-            return;
-
-        if (pilihanRt < 1 || pilihanRt > rw.countRt())
+        if (inputKec.empty())
         {
-            cout << "RT tidak valid!" << endl;
+            cout << "Nama Kecamatan tidak boleh kosong!\n";
             system("pause");
             continue;
         }
 
-        RT &rtTerpilih = *rtPtr;
-        if (rtTerpilih.countWarga() == 0)
+        Kecamatan *kec = nullptr;
+        function<void(PentaTreeNode *)> cariKec = [&](PentaTreeNode *node)
         {
-            cout << "RT ini tidak memiliki warga!" << endl;
+            if (!node)
+                return;
+            cariKec(node->left);
+            if (toLower(node->data.nama) == toLower(inputKec))
+                kec = &node->data;
+            cariKec(node->right);
+        };
+        cariKec(kota.root);
+
+        if (!kec)
+        {
+            cout << "Kecamatan \"" << inputKec << "\" tidak ditemukan!\n";
             system("pause");
             continue;
         }
@@ -1556,151 +1574,248 @@ void menuDataWargaDanBantuan(RW &rw)
         while (true)
         {
             system("cls");
-            cout << "Daftar Warga di RT " << rtTerpilih.nama << ":\n";
-            rtTerpilih.tampilkanWarga();
-            cout << "0. Kembali\nPilih warga (nomor): ";
-            int pilihanWarga;
-            string inputWarga;
-            getline(cin, inputWarga);
-
-            if (inputWarga.empty() || all_of(inputWarga.begin(), inputWarga.end(), ::isspace))
-            {
-                cout << "Input tidak boleh kosong!" << endl;
-                system("pause");
-                continue;
-            }
-            try
-            {
-                pilihanWarga = stoi(inputWarga);
-            }
-            catch (...)
-            {
-                cout << "Input tidak valid!" << endl;
-                system("pause");
-                continue;
-            }
-            if (pilihanWarga == 0)
+            kec->tampilkanKelurahan();
+            string inputKel;
+            cout << "Masukkan nama Kelurahan (0: kembali, M: menu utama): ";
+            getline(cin, inputKel);
+            if (cekKembaliKeMenuUtama(inputKel))
+                return;
+            if (inputKel == "0")
                 break;
-
-            int index = 0;
-            TreeNode *nodeWarga = rtTerpilih.cariWargaByIndex(rtTerpilih.root, pilihanWarga - 1, index);
-            if (!nodeWarga)
+            if (inputKel.empty())
             {
-                cout << "Warga tidak ditemukan!" << endl;
+                cout << "Nama Kelurahan tidak boleh kosong!\n";
                 system("pause");
                 continue;
             }
 
-            int opsi;
+            Kelurahan *kel = nullptr;
+            function<void(QuadTreeNode *)> cariKel = [&](QuadTreeNode *node)
+            {
+                if (!node)
+                    return;
+                cariKel(node->left);
+                if (toLower(node->data.nama) == toLower(inputKel))
+                    kel = &node->data;
+                cariKel(node->right);
+            };
+            cariKel(kec->root);
+
+            if (!kel)
+            {
+                cout << "Kelurahan \"" << inputKel << "\" tidak ditemukan!\n";
+                system("pause");
+                continue;
+            }
+
             while (true)
             {
                 system("cls");
-                cout << "Detail Warga:\n";
-                cout << "Nama: " << nodeWarga->data.nama << endl;
-                cout << "Daftar Bantuan:\n";
-
-                if (nodeWarga->data.daftarBantuan.empty())
-                {
-                    cout << "  - Belum ada bantuan yang tercatat.\n";
-                }
-                else
-                {
-                    int no = 1;
-                    for (const auto &bantuan : nodeWarga->data.daftarBantuan)
-                    {
-                        cout << "  " << no++ << ". " << bantuan.jenis << " (Tanggal: " << bantuan.tanggal << ")\n";
-                    }
-                }
-
-                cout << "\n1. Tambah bantuan baru\n0. Kembali ke daftar warga\nPilih opsi: ";
-                string inputOpsi;
-                getline(cin, inputOpsi);
-
-                if (inputOpsi.empty() || all_of(inputOpsi.begin(), inputOpsi.end(), ::isspace))
-                {
-                    cout << "Input tidak boleh kosong!" << endl;
-                    system("pause");
-                    continue;
-                }
-
-                try
-                {
-                    opsi = stoi(inputOpsi);
+                kel->tampilkanRW();
+                cout << "Masukkan nomor/nama RW (0: kembali, M: menu utama): ";
+                string inputRW;
+                getline(cin, inputRW);
+                if (cekKembaliKeMenuUtama(inputRW))
+                    return;
+                if (inputRW == "0")
                     break;
-                }
-                catch (...)
+                if (inputRW.empty())
                 {
-                    cout << "Input tidak valid!" << endl;
+                    cout << "Input RW tidak boleh kosong!\n";
                     system("pause");
                     continue;
                 }
-            }
-            if (opsi == 0)
-                continue;
 
-            if (opsi == 1)
-            {
-                Bantuan bantuan;
+                string targetRW = toLower(formatWilayah(inputRW, "RW"));
+                RW *rw = nullptr;
+                function<void(ThirdTreeNode *)> cariRW = [&](ThirdTreeNode *node)
+                {
+                    if (!node)
+                        return;
+                    cariRW(node->left);
+                    string rwNama = toLower(formatWilayah(node->data.nama, "RW"));
+                    if (rwNama == targetRW)
+                        rw = &node->data;
+                    cariRW(node->right);
+                };
+                cariRW(kel->root);
 
-                // Validasi jenis bantuan
+                if (!rw)
+                {
+                    cout << "RW \"" << inputRW << "\" tidak ditemukan!\n";
+                    system("pause");
+                    continue;
+                }
+
                 while (true)
                 {
-                    cout << "Masukkan jenis bantuan (Sembako, Uang, Pakaian): ";
-                    getline(cin, bantuan.jenis);
-
-                    if (bantuan.jenis.empty() || all_of(bantuan.jenis.begin(), bantuan.jenis.end(), ::isspace))
+                    system("cls");
+                    rw->tampilkanRT();
+                    cout << "Masukkan nomor/nama RT (0: kembali, M: menu utama): ";
+                    string inputRT;
+                    getline(cin, inputRT);
+                    if (cekKembaliKeMenuUtama(inputRT))
+                        return;
+                    if (inputRT == "0")
+                        break;
+                    if (inputRT.empty())
                     {
-                        cout << "Input tidak boleh kosong. Silakan masukkan jenis bantuan.\n";
+                        cout << "Input RT tidak boleh kosong!\n";
+                        system("pause");
                         continue;
                     }
 
-                    string lowerJenis = bantuan.jenis;
-                    transform(lowerJenis.begin(), lowerJenis.end(), lowerJenis.begin(), ::tolower);
+                    string targetRT = toLower(formatWilayah(inputRT, "RT"));
+                    RT *rt = nullptr;
+                    function<void(SecTreeNode *)> cariRT = [&](SecTreeNode *node)
+                    {
+                        if (!node)
+                            return;
+                        cariRT(node->left);
+                        if (toLower(node->data.nama) == targetRT)
+                            rt = &node->data;
+                        cariRT(node->right);
+                    };
+                    cariRT(rw->root);
 
-                    if (lowerJenis == "sembako")
+                    if (!rt)
                     {
-                        bantuan.jenis = "Sembako";
-                        break;
-                    }
-                    else if (lowerJenis == "uang")
-                    {
-                        bantuan.jenis = "Uang";
-                        break;
-                    }
-                    else if (lowerJenis == "pakaian")
-                    {
-                        bantuan.jenis = "Pakaian";
-                        break;
-                    }
-                    else
-                    {
-                        cout << "Jenis bantuan tidak valid. Hanya boleh: Sembako, Uang, Pakaian.\n";
-                    }
-                }
-
-                // Validasi tanggal
-                while (true)
-                {
-                    cout << "Masukkan tanggal bantuan (DD-MM-YYYY): ";
-                    getline(cin, bantuan.tanggal);
-
-                    if (bantuan.tanggal.empty())
-                    {
-                        cout << "Input tidak boleh kosong. Silakan masukkan tanggal.\n";
+                        cout << "RT \"" << inputRT << "\" tidak ditemukan!\n";
+                        system("pause");
                         continue;
                     }
 
-                    regex tanggalRegex(R"(^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-(20\d{2})$)");
-                    if (regex_match(bantuan.tanggal, tanggalRegex))
-                        break;
-                    else
-                        cout << "Format tanggal tidak valid.\n";
+                    if (rt->countWarga() == 0)
+                    {
+                        cout << "RT ini belum memiliki warga.\n";
+                        system("pause");
+                        continue;
+                    }
+
+                    while (true)
+                    {
+                        system("cls");
+                        cout << "Daftar Warga di " << rt->nama << ":\n";
+                        rt->tampilkanWarga();
+                        cout << "0. Kembali\nM. Menu utama\nPilih warga (nomor): ";
+                        string input;
+                        getline(cin, input);
+                        if (cekKembaliKeMenuUtama(input))
+                            return;
+                        if (input == "0")
+                            break;
+
+                        int index = 0;
+                        int pilihan = -1;
+                        try
+                        {
+                            pilihan = stoi(input);
+                        }
+                        catch (...)
+                        {
+                        }
+                        if (pilihan <= 0)
+                        {
+                            cout << "Input tidak valid!\n";
+                            system("pause");
+                            continue;
+                        }
+
+                        TreeNode *node = rt->cariWargaByIndex(rt->root, pilihan - 1, index);
+                        if (!node)
+                        {
+                            cout << "Warga tidak ditemukan!\n";
+                            system("pause");
+                            continue;
+                        }
+
+                        while (true)
+                        {
+                            system("cls");
+                            cout << "Detail Warga:\n"
+                                 << "NIK  : " << node->data.nik << '\n'
+                                 << "Nama : " << node->data.nama << "\n\n";
+
+                            cout << "Daftar Bantuan:\n";
+                            if (node->data.daftarBantuan.empty())
+                                cout << "  - Belum ada bantuan.\n";
+                            else
+                            {
+                                int no = 1;
+                                for (const auto &b : node->data.daftarBantuan)
+                                {
+                                    cout << "  " << no++ << ". " << b.jenis;
+                                    if (toLower(b.jenis) == "uang")
+                                        cout << " (Rp " << b.nominal << ")";
+                                    cout << " (Tanggal: " << b.tanggal << ")\n";
+                                }
+                            }
+
+                            cout << "\n1. Tambah bantuan baru\n0. Kembali\nM. Menu utama\nPilih opsi: ";
+                            string opsi;
+                            getline(cin, opsi);
+                            if (cekKembaliKeMenuUtama(opsi))
+                                return;
+                            if (opsi == "0")
+                                break;
+                            if (opsi != "1")
+                            {
+                                cout << "Opsi tidak valid!\n";
+                                system("pause");
+                                continue;
+                            }
+
+                            Bantuan bantuan;
+                            while (true)
+                            {
+                                cout << "Jenis bantuan (Sembako/Uang/Pakaian): ";
+                                getline(cin, bantuan.jenis);
+                                string lower = toLower(bantuan.jenis);
+                                if (lower == "sembako" || lower == "uang" || lower == "pakaian")
+                                {
+                                    bantuan.jenis = lower;
+                                    if (lower == "uang")
+                                    {
+                                        while (true)
+                                        {
+                                            cout << "Masukkan nominal bantuan (dalam angka): Rp ";
+                                            string inputNominal;
+                                            getline(cin, inputNominal);
+                                            try
+                                            {
+                                                bantuan.nominal = stoi(inputNominal);
+                                                if (bantuan.nominal <= 0)
+                                                    throw runtime_error("Nominal harus lebih dari 0.");
+                                                break;
+                                            }
+                                            catch (...)
+                                            {
+                                                cout << "Nominal tidak valid!\n";
+                                            }
+                                        }
+                                    }
+                                    bantuan.jenis[0] = toupper(bantuan.jenis[0]);
+                                    break;
+                                }
+                                cout << "Jenis bantuan tidak valid!\n";
+                            }
+
+                            while (true)
+                            {
+                                cout << "Tanggal bantuan (DD-MM-YYYY): ";
+                                getline(cin, bantuan.tanggal);
+                                regex tanggalRegex(R"(^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-(20\d{2})$)");
+                                if (regex_match(bantuan.tanggal, tanggalRegex))
+                                    break;
+                                cout << "Format tanggal tidak valid!\n";
+                            }
+
+                            node->data.daftarBantuan.push_back(bantuan);
+                            cout << "Bantuan berhasil ditambahkan!\n";
+                            system("pause");
+                        }
+                    }
                 }
-
-                nodeWarga->data.daftarBantuan.push_back(bantuan);
-
-                cout << "Bantuan berhasil didaftarkan untuk " << nodeWarga->data.nama << "!" << endl;
-                system("pause");
             }
         }
     }
@@ -2455,7 +2570,7 @@ int main()
             kelolaWarga(rw);
             break;
         case 2:
-            menuDataWargaDanBantuan(rw);
+            menuDataWargaDanBantuan(kota);
             break;
         case 3:
             system("cls");

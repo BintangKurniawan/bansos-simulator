@@ -1,5 +1,6 @@
 {
   "files.associations": {
+    "*.embeddedhtml": "html",
     "ostream": "cpp",
     "iosfwd": "cpp",
     "any": "cpp",
@@ -67,7 +68,8 @@
     "xhash": "cpp",
     "xlocinfo": "cpp",
     "xtree": "cpp",
-    "xutility": "cpp"
+    "xutility": "cpp",
+    "regex": "cpp"
   },
   "C_Cpp.errorSquiggles": "disabled"
 }
