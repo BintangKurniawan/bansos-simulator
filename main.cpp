@@ -25,6 +25,7 @@ struct Bantuan
 
 struct Warga
 {
+    string nik;
     string nama;
     int umur;
     int penghasilan;
@@ -34,6 +35,7 @@ struct Warga
 
     vector<Bantuan> daftarBantuan;
 };
+
 struct TreeNode
 {
     Warga data;
@@ -81,6 +83,21 @@ struct RT
         root = insert(root, warga);
     }
 
+    bool nikTerdaftar(const string &nik)
+    {
+        TreeNode *current = root;
+        while (current != nullptr)
+        {
+            if (current->data.nik == nik)
+                return true;
+            if (nik < current->data.nik)
+                current = current->left;
+            else
+                current = current->right;
+        }
+        return false;
+    }
+
     TreeNode *insert(TreeNode *node, const Warga &warga)
     {
         if (node == nullptr)
@@ -88,7 +105,7 @@ struct RT
             return new TreeNode(warga);
         }
 
-        if (warga.nama < node->data.nama)
+        if (warga.nik < node->data.nik)
         {
             node->left = insert(node->left, warga);
         }
@@ -120,7 +137,9 @@ struct RT
 
         inOrderTraversal(node->left, counter);
 
-        cout << "  " << counter++ << ". Nama: " << node->data.nama << "\n"
+        cout << "  " << counter++ << "." << "\n"
+             << "     NIK: " << node->data.nik << "\n"
+             << "     Nama: " << node->data.nama << "\n"
              << "     Umur: " << node->data.umur << "\n"
              << "     Penghasilan: " << node->data.penghasilan << "\n"
              << "     Status Keluarga: " << node->data.statusKeluarga << "\n"
@@ -132,19 +151,19 @@ struct RT
         inOrderTraversal(node->right, counter);
     }
 
-    TreeNode *cariWarga(TreeNode *node, const string &nama)
+    TreeNode *cariWarga(TreeNode *node, const string &nik)
     {
         if (node == nullptr)
             return nullptr;
 
-        if (node->data.nama == nama)
+        if (node->data.nik == nik)
             return node;
 
-        TreeNode *found = cariWarga(node->left, nama);
+        TreeNode *found = cariWarga(node->left, nik);
         if (found != nullptr)
             return found;
 
-        return cariWarga(node->right, nama);
+        return cariWarga(node->right, nik);
     }
 
     TreeNode *cariWargaByIndex(TreeNode *node, int target, int &current)
@@ -163,26 +182,27 @@ struct RT
         return cariWargaByIndex(node->right, target, current);
     }
 
-    void hapusWarga(const string &nama)
+    void hapusWarga(const string &nik)
     {
-        root = deleteNode(root, nama);
+        root = deleteNode(root, nik);
     }
 
-    TreeNode *deleteNode(TreeNode *node, const string &nama)
+    TreeNode *deleteNode(TreeNode *node, const string &nik)
     {
         if (node == nullptr)
             return nullptr;
 
-        if (nama < node->data.nama)
+        if (nik < node->data.nik)
         {
-            node->left = deleteNode(node->left, nama);
+            node->left = deleteNode(node->left, nik);
         }
-        else if (nama > node->data.nama)
+        else if (nik > node->data.nik)
         {
-            node->right = deleteNode(node->right, nama);
+            node->right = deleteNode(node->right, nik);
         }
         else
         {
+            // Node dengan NIK yang cocok ditemukan
             if (node->left == nullptr)
             {
                 TreeNode *temp = node->right;
@@ -196,9 +216,10 @@ struct RT
                 return temp;
             }
 
+            // Node dengan dua anak, cari successor
             TreeNode *temp = minValueNode(node->right);
             node->data = temp->data;
-            node->right = deleteNode(node->right, temp->data.nama);
+            node->right = deleteNode(node->right, temp->data.nik);
         }
         return node;
     }
@@ -225,43 +246,64 @@ struct RT
         return 1 + countNodes(node->left) + countNodes(node->right);
     }
 };
-struct Wilayah
+struct SecTreeNode
+{
+    RT data;
+    SecTreeNode *left;
+    SecTreeNode *right;
+
+    SecTreeNode(const RT &rt) : data(rt), left(nullptr), right(nullptr) {}
+};
+
+struct RW
 {
     string nama;
-    vector<RT> rtList;
+    SecTreeNode *root = nullptr;
     stack<PerubahanData> riwayatPerubahan;
 
-    Wilayah(const string &nama) : nama(nama) {}
+    RW(const string &nama) : nama(nama) {}
 
-    void tambahRt(const RT &rt)
+    void tambahRT(const RT &rt)
     {
-        rtList.push_back(rt);
+        root = insert(root, rt);
     }
 
-    void tampilkanRt() const
+    SecTreeNode *insert(SecTreeNode *node, const RT &rt)
     {
-        if (rtList.empty())
+        if (node == nullptr)
         {
-            cout << "Tidak ada RT terdaftar di wilayah ini" << endl;
-            return;
+            return new SecTreeNode(rt);
         }
 
-        cout << "Daftar RT di wilayah " << nama << ":" << endl;
-        for (size_t i = 0; i < rtList.size(); ++i)
+        if (rt.nama < node->data.nama)
         {
-            cout << "  " << (i + 1) << ". " << rtList[i].nama << " ("
-                 << rtList[i].countWarga() << " warga)" << endl;
+            node->left = insert(node->left, rt);
         }
+        else
+        {
+            node->right = insert(node->right, rt);
+        }
+
+        return node;
     }
 
     void tampilkanSemuaData() const
     {
-        cout << "Wilayah: " << nama << endl;
-        for (const auto &rt : rtList)
-        {
-            cout << rt.nama << ":" << endl;
-            rt.tampilkanWarga();
-        }
+        cout << "RW: " << nama << endl;
+        tampilkanDataInOrder(root);
+    }
+
+    void tampilkanDataInOrder(SecTreeNode *node) const
+    {
+        if (node == nullptr)
+            return;
+
+        tampilkanDataInOrder(node->left);
+
+        cout << node->data.nama << ":" << endl;
+        node->data.tampilkanWarga();
+
+        tampilkanDataInOrder(node->right);
     }
 
     void tambahRiwayat(const PerubahanData &perubahan)
@@ -311,28 +353,361 @@ struct Wilayah
             cout << "  ------------------------" << endl;
         }
     }
+
+    int countRt() const
+    {
+        return countNodes(root);
+    }
+
+    int countNodes(SecTreeNode *node) const
+    {
+        if (node == nullptr)
+            return 0;
+        return 1 + countNodes(node->left) + countNodes(node->right);
+    }
+
+    void tampilkanRT() const
+    {
+        if (root == nullptr)
+        {
+            cout << "  Tidak ada RT terdaftar di RW " << nama << endl;
+            return;
+        }
+
+        cout << "  Daftar RT di RW " << nama << ":" << endl;
+        int counter = 1;
+        inOrderTraversal(root, counter);
+    }
+
+    void inOrderTraversal(SecTreeNode *node, int &counter) const
+    {
+        if (node == nullptr)
+            return;
+
+        inOrderTraversal(node->left, counter);
+
+        cout << "  " << counter++ << "." << "\n"
+             << "     RT " << node->data.nama << "\n"
+
+             << endl;
+
+        inOrderTraversal(node->right, counter);
+    }
+
+    RT *getRTByIndex(int targetIndex)
+    {
+        int currentIndex = 0;
+        return getRTByIndexHelper(root, targetIndex, currentIndex);
+    }
+
+    RT *getRTByIndexHelper(SecTreeNode *node, int targetIndex, int &currentIndex)
+    {
+        if (node == nullptr)
+            return nullptr;
+
+        RT *result = getRTByIndexHelper(node->left, targetIndex, currentIndex);
+        if (result != nullptr)
+            return result;
+
+        if (currentIndex == targetIndex)
+        {
+            return &node->data;
+        }
+        currentIndex++;
+
+        return getRTByIndexHelper(node->right, targetIndex, currentIndex);
+    }
+
+    RT *cariRT(const string &namaRT)
+    {
+        SecTreeNode *current = root;
+        while (current != nullptr)
+        {
+            if (current->data.nama == namaRT)
+                return &current->data;
+            else if (namaRT < current->data.nama)
+                current = current->left;
+            else
+                current = current->right;
+        }
+        return nullptr;
+    }
+};
+struct ThirdTreeNode
+{
+    RW data;
+    ThirdTreeNode *left;
+    ThirdTreeNode *right;
+
+    ThirdTreeNode(const RW &rw) : data(rw), left(nullptr), right(nullptr) {}
 };
 
-void inputDataWarga(Wilayah &wilayah)
+struct Kelurahan
+{
+    string nama;
+    ThirdTreeNode *root = nullptr;
+
+    Kelurahan(const string &nama) : nama(nama) {}
+
+    void tambahRW(const RW &rw)
+    {
+        root = insert(root, rw);
+    }
+
+    ThirdTreeNode *insert(ThirdTreeNode *node, const RW &rw)
+    {
+        if (node == nullptr)
+        {
+            return new ThirdTreeNode(rw);
+        }
+
+        if (rw.nama < node->data.nama)
+        {
+            node->left = insert(node->left, rw);
+        }
+        else
+        {
+            node->right = insert(node->right, rw);
+        }
+
+        return node;
+    }
+
+    void tampilkanRW() const
+    {
+        if (root == nullptr)
+        {
+            cout << "  Tidak ada RW terdaftar di Kelurahan " << nama << endl;
+            return;
+        }
+
+        cout << "  Daftar RW di Kelurahan " << nama << ":" << endl;
+        int counter = 1;
+        inOrderTraversal(root, counter);
+    }
+
+    void inOrderTraversal(ThirdTreeNode *node, int &counter) const
+    {
+        if (node == nullptr)
+            return;
+
+        inOrderTraversal(node->left, counter);
+
+        cout << "  " << counter++ << "." << "\n"
+             << "     RW " << node->data.nama << "\n"
+
+             << endl;
+
+        inOrderTraversal(node->right, counter);
+    }
+
+    RW *cariRW(const string &namaRW)
+    {
+        ThirdTreeNode *current = root;
+        while (current != nullptr)
+        {
+            if (current->data.nama == namaRW)
+                return &current->data;
+            else if (namaRW < current->data.nama)
+                current = current->left;
+            else
+                current = current->right;
+        }
+        return nullptr;
+    }
+};
+struct QuadTreeNode
+{
+    Kelurahan data;
+    QuadTreeNode *left;
+    QuadTreeNode *right;
+
+    QuadTreeNode(const Kelurahan &kelurahan) : data(kelurahan), left(nullptr), right(nullptr) {}
+};
+
+struct Kecamatan
+{
+    string nama;
+    QuadTreeNode *root = nullptr;
+
+    Kecamatan(const string &nama) : nama(nama) {}
+
+    void tambahKelurahan(const Kelurahan &kelurahan)
+    {
+        root = insert(root, kelurahan);
+    }
+
+    QuadTreeNode *insert(QuadTreeNode *node, const Kelurahan &kelurahan)
+    {
+        if (node == nullptr)
+        {
+            return new QuadTreeNode(kelurahan);
+        }
+
+        if (kelurahan.nama < node->data.nama)
+        {
+            node->left = insert(node->left, kelurahan);
+        }
+        else
+        {
+            node->right = insert(node->right, kelurahan);
+        }
+
+        return node;
+    }
+
+    void tampilkanKelurahan() const
+    {
+        if (root == nullptr)
+        {
+            cout << "  Tidak ada Kelurahan terdaftar di Kecamatan " << nama << endl;
+            return;
+        }
+
+        cout << "  Daftar Kelurahan di Kecamatan " << nama << ":" << endl;
+        int counter = 1;
+        inOrderTraversal(root, counter);
+    }
+
+    void inOrderTraversal(QuadTreeNode *node, int &counter) const
+    {
+        if (node == nullptr)
+            return;
+
+        inOrderTraversal(node->left, counter);
+
+        cout << "  " << counter++ << "." << "\n"
+             << "      " << node->data.nama << "\n"
+
+             << endl;
+
+        inOrderTraversal(node->right, counter);
+    }
+
+    Kelurahan *cariKelurahan(const string &namaKelurahan)
+    {
+        QuadTreeNode *current = root;
+        while (current != nullptr)
+        {
+            if (current->data.nama == namaKelurahan)
+                return &current->data;
+            else if (namaKelurahan < current->data.nama)
+                current = current->left;
+            else
+                current = current->right;
+        }
+        return nullptr;
+    }
+};
+
+struct PentaTreeNode
+{
+    Kecamatan data;
+    PentaTreeNode *left;
+    PentaTreeNode *right;
+
+    PentaTreeNode(const Kecamatan &kecamatan) : data(kecamatan), left(nullptr), right(nullptr) {}
+};
+
+struct Kota
+{
+    string nama;
+    PentaTreeNode *root = nullptr;
+
+    Kota(const string &nama) : nama(nama) {}
+
+    void tambahKecamatan(const Kecamatan &kecamatan)
+    {
+        root = insert(root, kecamatan);
+    }
+
+    PentaTreeNode *insert(PentaTreeNode *node, const Kecamatan &kecamatan)
+    {
+        if (node == nullptr)
+        {
+            return new PentaTreeNode(kecamatan);
+        }
+
+        if (kecamatan.nama < node->data.nama)
+        {
+            node->left = insert(node->left, kecamatan);
+        }
+        else
+        {
+            node->right = insert(node->right, kecamatan);
+        }
+
+        return node;
+    }
+
+    void tampilkanKecamatan() const
+    {
+        if (root == nullptr)
+        {
+            cout << "  Tidak ada Kecamatan terdaftar di Kota " << nama << endl;
+            return;
+        }
+
+        cout << "  Daftar Kecamatan di Kota " << nama << ":" << endl;
+        int counter = 1;
+        inOrderTraversal(root, counter);
+    }
+
+    void inOrderTraversal(PentaTreeNode *node, int &counter) const
+    {
+        if (node == nullptr)
+            return;
+
+        inOrderTraversal(node->left, counter);
+
+        cout << "  " << counter++ << "." << "\n"
+             << "      " << node->data.nama << "\n"
+
+             << endl;
+
+        inOrderTraversal(node->right, counter);
+    }
+
+    Kecamatan *cariKecamatan(const string &namaKecamatan)
+    {
+        PentaTreeNode *current = root;
+        while (current != nullptr)
+        {
+            if (current->data.nama == namaKecamatan)
+                return &current->data;
+            else if (namaKecamatan < current->data.nama)
+                current = current->left;
+            else
+                current = current->right;
+        }
+        return nullptr;
+    }
+};
+
+bool isAllDigits(const string &str)
+{
+    for (char c : str)
+    {
+        if (!isdigit(c))
+            return false;
+    }
+    return true;
+}
+
+void inputDataWarga(RW &rw)
 {
     while (true)
     {
         system("cls");
+
         cout << "====== INPUT DATA WARGA ======" << endl;
 
-        if (wilayah.rtList.empty())
-        {
-            cout << "Tidak ada RT yang tersedia. Silakan tambahkan RT terlebih dahulu." << endl;
-            system("pause");
-            return;
-        }
-
-        wilayah.tampilkanRt();
+        rw.tampilkanRT();
         cout << "0. Kembali ke menu utama" << endl;
         cout << "Pilih RT (nomor): ";
 
         int pilihanRt;
-        while (!(cin >> pilihanRt) || pilihanRt < 0 || static_cast<size_t>(pilihanRt) > wilayah.rtList.size())
+        while (!(cin >> pilihanRt) || pilihanRt < 0 || static_cast<size_t>(pilihanRt) > rw.countRt())
         {
             cin.clear();
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
@@ -342,8 +717,16 @@ void inputDataWarga(Wilayah &wilayah)
 
         if (pilihanRt == 0)
             return;
+        RT *rtPtr = rw.getRTByIndex(pilihanRt - 1);
 
-        RT &rtTerpilih = wilayah.rtList[pilihanRt - 1];
+        if (rtPtr == nullptr)
+        {
+            cout << "Tidak ada RT yang tersedia. Silakan tambahkan RT terlebih dahulu." << endl;
+            system("pause");
+            return;
+        }
+        RT &rtTerpilih = *rtPtr;
+
         char tambahLagi;
 
         do
@@ -353,6 +736,23 @@ void inputDataWarga(Wilayah &wilayah)
             cout << "====== INPUT DATA WARGA BARU ======" << endl;
 
             Warga wargaBaru;
+
+            do
+            {
+                cout << "NIK: ";
+                getline(cin, wargaBaru.nik);
+
+                if (rtTerpilih.nikTerdaftar(wargaBaru.nik))
+                {
+                    cout << "NIK sudah terdaftar! Masukkan NIK yang belum terdaftar." << endl;
+                }
+
+                if (wargaBaru.nik.length() != 16 || !isAllDigits(wargaBaru.nik))
+                {
+                    cout << "NIK tidak valid! Masukkan 16 digit angka." << endl;
+                }
+
+            } while ((wargaBaru.nik.length() != 16 || !isAllDigits(wargaBaru.nik)) || rtTerpilih.nikTerdaftar(wargaBaru.nik));
 
             do
             {
@@ -463,7 +863,7 @@ void inputDataWarga(Wilayah &wilayah)
             perubahan.nilaiBaru = wargaBaru.kategori;
             perubahan.fieldDiubah = "Semua Data";
 
-            wilayah.tambahRiwayat(perubahan);
+            rw.tambahRiwayat(perubahan);
 
             do
             {
@@ -483,26 +883,20 @@ void inputDataWarga(Wilayah &wilayah)
     }
 }
 
-void editDataWarga(Wilayah &wilayah)
+void editDataWarga(RW &rw)
 {
     while (true)
     {
         system("cls");
+
         cout << "====== EDIT DATA WARGA ======" << endl;
 
-        if (wilayah.rtList.empty())
-        {
-            cout << "Tidak ada RT yang tersedia. Silakan tambahkan RT terlebih dahulu." << endl;
-            system("pause");
-            return;
-        }
-
-        wilayah.tampilkanRt();
+        rw.tampilkanRT();
         cout << "0. Kembali ke menu utama" << endl;
         cout << "Pilih RT (nomor): ";
 
         int pilihanRt;
-        while (!(cin >> pilihanRt) || pilihanRt < 0 || pilihanRt > static_cast<int>(wilayah.rtList.size()))
+        while (!(cin >> pilihanRt) || pilihanRt < 0 || pilihanRt > static_cast<int>(rw.countRt()))
         {
             cin.clear();
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
@@ -512,8 +906,14 @@ void editDataWarga(Wilayah &wilayah)
 
         if (pilihanRt == 0)
             return;
-
-        RT &rtTerpilih = wilayah.rtList[pilihanRt - 1];
+        RT *rtPtr = rw.getRTByIndex(pilihanRt - 1);
+        if (rtPtr == nullptr)
+        {
+            cout << "Tidak ada RT yang tersedia. Silakan tambahkan RT terlebih dahulu." << endl;
+            system("pause");
+            return;
+        }
+        RT &rtTerpilih = *rtPtr;
 
         if (rtTerpilih.countWarga() == 0)
         {
@@ -613,9 +1013,9 @@ void editDataWarga(Wilayah &wilayah)
                 {
                     Warga wargaTemp = wargaTerpilih;
                     wargaTemp.nama = namaBaru;
-                    rtTerpilih.hapusWarga(namaLama);
+                    rtTerpilih.hapusWarga(wargaTemp.nik);
                     rtTerpilih.tambahWarga(wargaTemp);
-                    TreeNode *foundNode = rtTerpilih.cariWarga(rtTerpilih.root, namaBaru);
+                    TreeNode *foundNode = rtTerpilih.cariWarga(rtTerpilih.root, wargaTemp.nik);
                     if (foundNode != nullptr)
                     {
                         wargaTerpilih = foundNode->data;
@@ -631,7 +1031,7 @@ void editDataWarga(Wilayah &wilayah)
                 perubahan.fieldDiubah = "Nama";
                 perubahan.nilaiLama = namaLama;
                 perubahan.nilaiBaru = namaBaru;
-                wilayah.tambahRiwayat(perubahan);
+                rw.tambahRiwayat(perubahan);
                 break;
             }
             case 2:
@@ -666,7 +1066,7 @@ void editDataWarga(Wilayah &wilayah)
                 perubahan.fieldDiubah = "Umur";
                 perubahan.nilaiLama = to_string(umurLama);
                 perubahan.nilaiBaru = to_string(umurBaru);
-                wilayah.tambahRiwayat(perubahan);
+                rw.tambahRiwayat(perubahan);
                 break;
             }
             case 3:
@@ -701,7 +1101,7 @@ void editDataWarga(Wilayah &wilayah)
                 perubahan.fieldDiubah = "Penghasilan";
                 perubahan.nilaiLama = to_string(penghasilanLama);
                 perubahan.nilaiBaru = to_string(penghasilanBaru);
-                wilayah.tambahRiwayat(perubahan);
+                rw.tambahRiwayat(perubahan);
                 break;
             }
             case 4:
@@ -749,7 +1149,7 @@ void editDataWarga(Wilayah &wilayah)
                 perubahan.fieldDiubah = "Status Keluarga";
                 perubahan.nilaiLama = statusLama;
                 perubahan.nilaiBaru = statusBaru;
-                wilayah.tambahRiwayat(perubahan);
+                rw.tambahRiwayat(perubahan);
                 break;
             }
             case 5:
@@ -778,7 +1178,7 @@ void editDataWarga(Wilayah &wilayah)
                 perubahan.fieldDiubah = "Alamat";
                 perubahan.nilaiLama = alamatLama;
                 perubahan.nilaiBaru = alamatBaru;
-                wilayah.tambahRiwayat(perubahan);
+                rw.tambahRiwayat(perubahan);
                 break;
             }
             }
@@ -817,25 +1217,20 @@ void editDataWarga(Wilayah &wilayah)
     }
 }
 
-void hapusDataWarga(Wilayah &wilayah)
+void hapusDataWarga(RW &rw)
 {
     while (true)
     {
         system("cls");
+
         cout << "====== HAPUS DATA WARGA ======" << endl;
 
-        if (wilayah.rtList.empty())
-        {
-            cout << "Tidak ada RT yang tersedia. Silakan tambahkan RT terlebih dahulu." << endl;
-            system("pause");
-            return;
-        }
-
-        wilayah.tampilkanRt();
+        rw.tampilkanRT();
         cout << "0. Kembali ke menu utama" << endl;
         cout << "Pilih RT (nomor): ";
 
         int pilihanRt;
+
         if (!(cin >> pilihanRt))
         {
             cin.clear();
@@ -845,17 +1240,23 @@ void hapusDataWarga(Wilayah &wilayah)
             continue;
         }
         cin.ignore();
-
+        RT *rtPtr = rw.getRTByIndex(pilihanRt - 1);
+        if (rtPtr == nullptr)
+        {
+            cout << "Tidak ada RT yang tersedia. Silakan tambahkan RT terlebih dahulu." << endl;
+            system("pause");
+            return;
+        }
         if (pilihanRt == 0)
             return;
-        if (pilihanRt < 1 || static_cast<size_t>(pilihanRt) > wilayah.rtList.size())
+        if (pilihanRt < 1 || static_cast<size_t>(pilihanRt) > rw.countRt())
         {
             cout << "RT tidak valid!" << endl;
             system("pause");
             continue;
         }
 
-        RT &rtTerpilih = wilayah.rtList[pilihanRt - 1];
+        RT &rtTerpilih = *rtPtr;
 
         if (rtTerpilih.countWarga() == 0)
         {
@@ -906,6 +1307,7 @@ void hapusDataWarga(Wilayah &wilayah)
             system("cls");
             cout << "====== KONFIRMASI PENGHAPUSAN ======" << endl;
             cout << "RT: " << rtTerpilih.nama << endl;
+            cout << "NIK: " << wargaTerpilih.nik << endl;
             cout << "Nama Warga: " << wargaTerpilih.nama << endl;
             cout << "Alamat: " << wargaTerpilih.alamat << endl;
             cout << "Kategori: " << wargaTerpilih.kategori << endl
@@ -931,23 +1333,23 @@ void hapusDataWarga(Wilayah &wilayah)
             perubahan.fieldDiubah = "Semua Data";
             perubahan.nilaiLama = "-";
             perubahan.nilaiBaru = "-";
-            wilayah.tambahRiwayat(perubahan);
+            rw.tambahRiwayat(perubahan);
 
-            rtTerpilih.hapusWarga(wargaTerpilih.nama);
+            rtTerpilih.hapusWarga(wargaTerpilih.nik);
             cout << "Data warga berhasil dihapus." << endl;
             return;
         }
     }
 }
 
-void lihatRiwayatPerubahan(Wilayah &wilayah)
+void lihatRiwayatPerubahan(RW &rw)
 {
     system("cls");
     cout << "====== RIWAYAT PERUBAHAN DATA ======" << endl;
-    wilayah.tampilkanRiwayat();
+    rw.tampilkanRiwayat();
 }
 
-void kelolaWarga(Wilayah &wilayah)
+void kelolaWarga(RW &rw)
 {
     bool running = true;
 
@@ -955,7 +1357,7 @@ void kelolaWarga(Wilayah &wilayah)
     {
         system("cls");
         cout << "====== KELOLA DATA WARGA ======" << endl;
-        cout << "Wilayah: " << wilayah.nama << endl;
+        cout << "Wilayah: " << rw.nama << endl;
 
         cout << "1. Lihat Data Warga" << endl;
         cout << "2. Input Data Warga" << endl;
@@ -981,16 +1383,16 @@ void kelolaWarga(Wilayah &wilayah)
         case 1:
             system("cls");
             cout << "====== DAFTAR WARGA ======" << endl;
-            wilayah.tampilkanSemuaData();
+            rw.tampilkanSemuaData();
             break;
         case 2:
-            inputDataWarga(wilayah);
+            inputDataWarga(rw);
             break;
         case 3:
-            editDataWarga(wilayah);
+            editDataWarga(rw);
             break;
         case 4:
-            hapusDataWarga(wilayah);
+            hapusDataWarga(rw);
             break;
         case 5:
             running = false;
@@ -1062,54 +1464,49 @@ void displayQueue(const Queue &q, const string &label)
     }
 }
 
-void buatAntrianDariWarga(const Wilayah &wilayah)
-{
-    createQueue(antrianPrioritas);
-    createQueue(antrianReguler);
+// void buatAntrianDariWarga(const RW &rw)
+// {
+//     createQueue(antrianPrioritas);
+//     createQueue(antrianReguler);
 
-    for (const auto &rt : wilayah.rtList)
-    {
-        function<void(TreeNode *)> traverse;
-        traverse = [&](TreeNode *node)
-        {
-            if (!node)
-                return;
-            traverse(node->left);
+//     for (const auto &rt : rw.rtList)
+//     {
+//         function<void(TreeNode *)> traverse;
+//         traverse = [&](TreeNode *node)
+//         {
+//             if (!node)
+//                 return;
+//             traverse(node->left);
 
-            string nama = node->data.nama;
-            string kategori = node->data.kategori;
+//             string nama = node->data.nama;
+//             string kategori = node->data.kategori;
 
-            if (kategori == "Prioritas")
-            {
-                insertQueue(antrianPrioritas, nama);
-            }
-            else
-            {
-                insertQueue(antrianReguler, nama);
-            }
+//             if (kategori == "Prioritas")
+//             {
+//                 insertQueue(antrianPrioritas, nama);
+//             }
+//             else
+//             {
+//                 insertQueue(antrianReguler, nama);
+//             }
 
-            traverse(node->right);
-        };
-        traverse(rt.root);
-    }
+//             traverse(node->right);
+//         };
+//         traverse(rt.root);
+//     }
 
-    cout << "Antrian berhasil dibuat dari data warga!" << endl;
-}
+//     cout << "Antrian berhasil dibuat dari data warga!" << endl;
+// }
 
-void menuDataWargaDanBantuan(Wilayah &wilayah)
+void menuDataWargaDanBantuan(RW &rw)
 {
     while (true)
     {
         system("cls");
-        cout << "====== DATA WARGA & BANTUAN ======" << endl;
-        if (wilayah.rtList.empty())
-        {
-            cout << "Tidak ada RT tersedia!" << endl;
-            system("pause");
-            return;
-        }
 
-        wilayah.tampilkanRt();
+        cout << "====== DATA WARGA & BANTUAN ======" << endl;
+
+        rw.tampilkanRT();
         cout << "0. Kembali ke menu utama\nPilih RT (nomor): ";
         int pilihanRt;
         string inputRt;
@@ -1131,17 +1528,24 @@ void menuDataWargaDanBantuan(Wilayah &wilayah)
             system("pause");
             continue;
         }
+        RT *rtPtr = rw.getRTByIndex(pilihanRt - 1);
+        if (rtPtr == nullptr)
+        {
+            cout << "Tidak ada RT tersedia!" << endl;
+            system("pause");
+            return;
+        }
         if (pilihanRt == 0)
             return;
 
-        if (pilihanRt < 1 || pilihanRt > wilayah.rtList.size())
+        if (pilihanRt < 1 || pilihanRt > rw.countRt())
         {
             cout << "RT tidak valid!" << endl;
             system("pause");
             continue;
         }
 
-        RT &rtTerpilih = wilayah.rtList[pilihanRt - 1];
+        RT &rtTerpilih = *rtPtr;
         if (rtTerpilih.countWarga() == 0)
         {
             cout << "RT ini tidak memiliki warga!" << endl;
@@ -1302,66 +1706,67 @@ void menuDataWargaDanBantuan(Wilayah &wilayah)
     }
 }
 
-void statistikBantuanPerRT(const Wilayah &wilayah)
-{
-    system("cls");
-    cout << "====== STATISTIK BANTUAN PER RT ======" << endl;
+// void statistikBantuanPerRT(const RW &rw)
+// {
+//     system("cls");
 
-    if (wilayah.rtList.empty())
-    {
-        cout << "Tidak ada RT tersedia!" << endl;
-        return;
-    }
+//     cout << "====== STATISTIK BANTUAN PER RT ======" << endl;
 
-    for (const auto &rt : wilayah.rtList)
-    {
-        cout << "\nRT: " << rt.nama << endl;
+//     if (rw.rtList.empty())
+//     {
+//         cout << "Tidak ada RT tersedia!" << endl;
+//         return;
+//     }
 
-        map<string, int> bantuanCounter;
-        int totalBantuan = 0;
+//     for (const auto &rt : rw.rtList)
+//     {
+//         cout << "\nRT: " << rt.nama << endl;
 
-        function<void(TreeNode *)> traverse;
-        traverse = [&](TreeNode *node)
-        {
-            if (!node)
-                return;
+//         map<string, int> bantuanCounter;
+//         int totalBantuan = 0;
 
-            traverse(node->left);
+//         function<void(TreeNode *)> traverse;
+//         traverse = [&](TreeNode *node)
+//         {
+//             if (!node)
+//                 return;
 
-            for (const auto &bantuan : node->data.daftarBantuan)
-            {
-                bantuanCounter[bantuan.jenis]++;
-                totalBantuan++;
-            }
+//             traverse(node->left);
 
-            traverse(node->right);
-        };
+//             for (const auto &bantuan : node->data.daftarBantuan)
+//             {
+//                 bantuanCounter[bantuan.jenis]++;
+//                 totalBantuan++;
+//             }
 
-        traverse(rt.root);
+//             traverse(node->right);
+//         };
 
-        if (totalBantuan == 0)
-        {
-            cout << "  Belum ada bantuan yang tercatat." << endl;
-        }
-        else
-        {
-            cout << "  Total Bantuan Diberikan: " << totalBantuan << endl;
-            for (const auto &entry : bantuanCounter)
-            {
-                cout << "    - " << entry.first << ": " << entry.second << " kali" << endl;
-            }
-        }
-    }
-}
+//         traverse(rt.root);
 
-void kelolaWilayah(Wilayah &wilayah)
+//         if (totalBantuan == 0)
+//         {
+//             cout << "  Belum ada bantuan yang tercatat." << endl;
+//         }
+//         else
+//         {
+//             cout << "  Total Bantuan Diberikan: " << totalBantuan << endl;
+//             for (const auto &entry : bantuanCounter)
+//             {
+//                 cout << "    - " << entry.first << ": " << entry.second << " kali" << endl;
+//             }
+//         }
+//     }
+// }
+
+void kelolaWilayahRT(RW &rw)
 {
     bool running = true;
     while (running)
     {
         system("cls");
-        cout << "====== KELOLA DATA WILAYAH ======" << endl;
-        cout << "Wilayah: " << wilayah.nama << endl;
+        cout << "====== KELOLA DATA RT ======" << endl;
+        cout << "RW: " << rw.nama << endl;
         cout << "1. Tambah RT" << endl;
         cout << "2. Lihat Daftar RT" << endl;
         cout << "3. Kembali ke menu utama" << endl;
@@ -1425,19 +1830,23 @@ void kelolaWilayah(Wilayah &wilayah)
                     }
                     else
                     {
-                        stringstream ss;
-                        ss << setw(2) << setfill('0') << nomorRt;
-                        string namaRt = "RT " + ss.str();
+                        stringstream ssRt;
+                        ssRt << setw(2) << setfill('0') << nomorRt;
+                        string namaRt = "RT " + ssRt.str();
 
+                        // === CEK APAKAH RT SUDAH ADA ===
                         bool rtExists = false;
-                        for (const auto &rt : wilayah.rtList)
+                        int dummy = 0;
+                        function<void(SecTreeNode *)> cekDuplikat = [&](SecTreeNode *node)
                         {
-                            if (rt.nama == namaRt)
-                            {
+                            if (!node)
+                                return;
+                            cekDuplikat(node->left);
+                            if (node->data.nama == namaRt)
                                 rtExists = true;
-                                break;
-                            }
-                        }
+                            cekDuplikat(node->right);
+                        };
+                        cekDuplikat(rw.root);
 
                         if (rtExists)
                         {
@@ -1448,7 +1857,7 @@ void kelolaWilayah(Wilayah &wilayah)
                         else
                         {
                             validNomorRt = true;
-                            wilayah.tambahRt(RT(namaRt));
+                            rw.tambahRT(RT(namaRt));
                             cout << namaRt << " berhasil ditambahkan!" << endl;
                             system("pause");
                         }
@@ -1457,14 +1866,17 @@ void kelolaWilayah(Wilayah &wilayah)
             }
             break;
         }
+
         case 2:
             system("cls");
-            wilayah.tampilkanRt();
+            rw.tampilkanRT();
             system("pause");
             break;
+
         case 3:
             running = false;
             break;
+
         default:
             cout << "Pilihan menu tidak valid!" << endl;
             break;
@@ -1472,26 +1884,531 @@ void kelolaWilayah(Wilayah &wilayah)
     }
 }
 
+void kelolaWilayahRW(Kelurahan &kelurahan)
+{
+    bool running = true;
+    while (running)
+    {
+        system("cls");
+        cout << "====== KELOLA DATA RW ======" << endl;
+        cout << "Kelurahan: " << kelurahan.nama << endl;
+        cout << "1. Tambah RW" << endl;
+        cout << "2. Lihat Daftar RW" << endl;
+        cout << "3. Kembali ke menu utama" << endl;
+        cout << "Pilihan menu (1-3): ";
+
+        int pilihan;
+        string inputString;
+        getline(cin, inputString);
+
+        if (inputString.empty() || !(stringstream(inputString) >> pilihan) || pilihan < 1 || pilihan > 3)
+        {
+            cout << "Input tidak valid. Masukkan angka antara 1-3!" << endl;
+            system("pause");
+            continue;
+        }
+
+        switch (pilihan)
+        {
+        case 1:
+        {
+            system("cls");
+            int nomorRw;
+            bool validNomorRw = false;
+
+            while (!validNomorRw)
+            {
+                cout << "Masukkan nomor RW yang akan ditambahkan (ketik 0 untuk kembali): ";
+
+                string inputString;
+                getline(cin, inputString);
+
+                if (inputString == "0")
+                {
+                    cout << "Kembali ke menu utama." << endl;
+                    return;
+                }
+
+                if (inputString.empty())
+                {
+                    cout << "Input tidak valid! Harap masukkan angka yang benar!" << endl;
+                    system("pause");
+                    system("cls");
+                    continue;
+                }
+
+                stringstream ss(inputString);
+                if (!(ss >> nomorRw))
+                {
+                    cout << "Input tidak valid! Harap masukkan angka yang benar!" << endl;
+                    system("pause");
+                    system("cls");
+                    continue;
+                }
+                else
+                {
+                    if (nomorRw <= 0)
+                    {
+                        cout << "Nomor RW harus lebih besar dari 0!" << endl;
+                        system("pause");
+                        system("cls");
+                    }
+                    else
+                    {
+                        stringstream ssRw;
+                        ssRw << setw(2) << setfill('0') << nomorRw;
+                        string namaRw = "RW " + ssRw.str();
+
+                        // === CEK APAKAH RW SUDAH ADA ===
+                        bool rwExists = false;
+                        function<void(ThirdTreeNode *)> cekDuplikat = [&](ThirdTreeNode *node)
+                        {
+                            if (!node)
+                                return;
+                            cekDuplikat(node->left);
+                            if (node->data.nama == namaRw)
+                                rwExists = true;
+                            cekDuplikat(node->right);
+                        };
+                        cekDuplikat(kelurahan.root);
+
+                        if (rwExists)
+                        {
+                            cout << "RW dengan nama '" << namaRw << "' sudah ada! Silakan masukkan nomor yang berbeda." << endl;
+                            system("pause");
+                            system("cls");
+                        }
+                        else
+                        {
+                            validNomorRw = true;
+                            kelurahan.tambahRW(RW(namaRw));
+                            cout << namaRw << " berhasil ditambahkan!" << endl;
+                            system("pause");
+                        }
+                    }
+                }
+            }
+            break;
+        }
+
+        case 2:
+        {
+            system("cls");
+            kelurahan.tampilkanRW();
+            system("pause");
+            break;
+        }
+
+        case 3:
+        {
+            running = false;
+            break;
+        }
+
+        default:
+        {
+            cout << "Pilihan menu tidak valid!" << endl;
+            system("pause");
+            break;
+        }
+        }
+    }
+}
+
+void kelolaWilayahKelurahan(Kecamatan &kecamatan)
+{
+    bool running = true;
+    while (running)
+    {
+        system("cls");
+        cout << "====== KELOLA DATA KELURAHAN ======" << endl;
+        cout << "Kecamatan: " << kecamatan.nama << endl;
+        cout << "1. Tambah Kelurahan" << endl;
+        cout << "2. Lihat Daftar Kelurahan" << endl;
+        cout << "3. Kembali ke menu utama" << endl;
+        cout << "Pilihan menu (1-3): ";
+
+        int pilihan;
+        string inputString;
+        getline(cin, inputString);
+
+        if (inputString.empty() || !(stringstream(inputString) >> pilihan) || pilihan < 1 || pilihan > 3)
+        {
+            cout << "Input tidak valid. Masukkan angka antara 1-3!" << endl;
+            system("pause");
+            continue;
+        }
+
+        switch (pilihan)
+        {
+        case 1:
+        {
+            system("cls");
+            bool valid = false;
+
+            while (!valid)
+            {
+                cout << "Masukkan nama Kelurahan yang akan ditambahkan (ketik 0 untuk kembali): ";
+                string namaKelurahan;
+                getline(cin, namaKelurahan);
+
+                if (namaKelurahan == "0")
+                {
+                    cout << "Kembali ke menu utama." << endl;
+                    return;
+                }
+
+                if (namaKelurahan.empty())
+                {
+                    cout << "Input tidak boleh kosong!" << endl;
+                    system("pause");
+                    system("cls");
+                    continue;
+                }
+
+                // Cek duplikat
+                bool sudahAda = false;
+                function<void(QuadTreeNode *)> cekDuplikat = [&](QuadTreeNode *node)
+                {
+                    if (!node)
+                        return;
+                    cekDuplikat(node->left);
+                    if (node->data.nama == namaKelurahan)
+                        sudahAda = true;
+                    cekDuplikat(node->right);
+                };
+                cekDuplikat(kecamatan.root);
+
+                if (sudahAda)
+                {
+                    cout << "Kelurahan '" << namaKelurahan << "' sudah ada!" << endl;
+                    system("pause");
+                    system("cls");
+                }
+                else
+                {
+                    valid = true;
+                    kecamatan.tambahKelurahan(Kelurahan(namaKelurahan));
+                    cout << "Kelurahan '" << namaKelurahan << "' berhasil ditambahkan!" << endl;
+                    system("pause");
+                }
+            }
+            break;
+        }
+
+        case 2:
+
+            system("cls");
+            kecamatan.tampilkanKelurahan();
+            system("pause");
+            break;
+
+        case 3:
+
+            running = false;
+            break;
+
+        default:
+
+            cout << "Pilihan menu tidak valid!" << endl;
+            system("pause");
+            break;
+        }
+    }
+}
+
+void kelolaWilayahKecamatan(Kota &kota)
+{
+    bool running = true;
+    while (running)
+    {
+        system("cls");
+        cout << "====== KELOLA DATA KECAMATAN ======" << endl;
+        cout << "Kota: " << kota.nama << endl;
+        cout << "1. Tambah Kecamatan" << endl;
+        cout << "2. Lihat Daftar Kecamatan" << endl;
+        cout << "3. Kembali ke menu utama" << endl;
+        cout << "Pilihan menu (1-3): ";
+
+        int pilihan;
+        string inputString;
+        getline(cin, inputString);
+
+        if (inputString.empty() || !(stringstream(inputString) >> pilihan) || pilihan < 1 || pilihan > 3)
+        {
+            cout << "Input tidak valid. Masukkan angka antara 1-3!" << endl;
+            system("pause");
+            continue;
+        }
+
+        switch (pilihan)
+        {
+        case 1:
+        {
+            system("cls");
+            bool valid = false;
+
+            while (!valid)
+            {
+                cout << "Masukkan nama kecamatan yang akan ditambahkan (ketik 0 untuk kembali): ";
+                string namaKecamatan;
+                getline(cin, namaKecamatan);
+
+                if (namaKecamatan == "0")
+                {
+                    cout << "Kembali ke menu utama." << endl;
+                    return;
+                }
+
+                if (namaKecamatan.empty())
+                {
+                    cout << "Input tidak boleh kosong!" << endl;
+                    system("pause");
+                    system("cls");
+                    continue;
+                }
+
+                // Cek duplikat
+                bool sudahAda = false;
+                function<void(PentaTreeNode *)> cekDuplikat = [&](PentaTreeNode *node)
+                {
+                    if (!node)
+                        return;
+                    cekDuplikat(node->left);
+                    if (node->data.nama == namaKecamatan)
+                        sudahAda = true;
+                    cekDuplikat(node->right);
+                };
+                cekDuplikat(kota.root);
+
+                if (sudahAda)
+                {
+                    cout << "Kecamatan '" << namaKecamatan << "' sudah ada!" << endl;
+                    system("pause");
+                    system("cls");
+                }
+                else
+                {
+                    valid = true;
+                    kota.tambahKecamatan(Kecamatan(namaKecamatan));
+                    cout << "Kecamatan '" << namaKecamatan << "' berhasil ditambahkan!" << endl;
+                    system("pause");
+                }
+            }
+            break;
+        }
+        break;
+
+        case 2:
+            system("cls");
+            kota.tampilkanKecamatan();
+            system("pause");
+            break;
+
+        case 3:
+            running = false;
+            break;
+
+        default:
+            cout << "Pilihan menu tidak valid!" << endl;
+            system("pause");
+            break;
+        }
+    }
+}
+
+void pilihDanKelolaRT(Kota &kota)
+{
+    system("cls");
+    kota.tampilkanKecamatan();
+
+    cout << "Masukkan nama kecamatan: ";
+    string namaKec;
+    getline(cin, namaKec);
+
+    Kecamatan *kec = kota.cariKecamatan(namaKec);
+
+    if (!kec)
+    {
+        cout << "Kecamatan tidak ditemukan!" << endl;
+        system("pause");
+        return;
+    }
+
+    cout << "Masukkan nama kelurahan: ";
+    string namaKel;
+    getline(cin, namaKel);
+
+    Kelurahan *kel = kec->cariKelurahan(namaKel);
+
+    if (!kel)
+    {
+        cout << "Kelurahan tidak ditemukan!" << endl;
+        system("pause");
+        return;
+    }
+
+    cout << "Masukkan nama RW: ";
+    string namaRW;
+    getline(cin, namaRW);
+    RW *rw = kel->cariRW(namaRW);
+    if (!rw)
+    {
+        cout << "RW tidak ditemukan!" << endl;
+        system("pause");
+        return;
+    }
+    kelolaWilayahRT(*rw);
+}
+
+void pilihDanKelolaRW(Kota &kota)
+{
+    system("cls");
+    kota.tampilkanKecamatan();
+
+    cout << "Masukkan nama kecamatan: ";
+    string namaKec;
+    getline(cin, namaKec);
+
+    Kecamatan *kec = kota.cariKecamatan(namaKec);
+
+    if (!kec)
+    {
+        cout << "Kecamatan tidak ditemukan!" << endl;
+        system("pause");
+        return;
+    }
+
+    kec->tampilkanKelurahan();
+
+    cout << "Masukkan nama kelurahan: ";
+    string namaKel;
+    getline(cin, namaKel);
+
+    Kelurahan *kel = kec->cariKelurahan(namaKel);
+
+    if (!kel)
+    {
+        cout << "Kelurahan tidak ditemukan!" << endl;
+        system("pause");
+        return;
+    }
+
+    kelolaWilayahRW(*kel);
+}
+
+void kelolaWilayah(Kota &kota)
+{
+    bool running = true;
+    while (running)
+    {
+        system("cls");
+        cout << "====== KELOLA DATA WILAYAH ======" << endl;
+        cout << "1. Kelola Kecamatan" << endl;
+        cout << "2. Kelola Kelurahan" << endl;
+        cout << "3. Kelola RW" << endl;
+        cout << "4. Kelola RT" << endl;
+        cout << "5. Kembali ke menu utama" << endl;
+        cout << "Pilihan menu (1-5): ";
+
+        int pilihan;
+        string inputString;
+        getline(cin, inputString);
+
+        if (inputString.empty() || !(stringstream(inputString) >> pilihan) || pilihan < 1 || pilihan > 5)
+        {
+            cout << "Input tidak valid. Masukkan angka antara 1-5!" << endl;
+            system("pause");
+            continue;
+        }
+
+        switch (pilihan)
+        {
+        case 1:
+            kelolaWilayahKecamatan(kota);
+            break;
+        case 2:
+        {
+
+            system("cls");
+            kota.tampilkanKecamatan();
+
+            string input;
+            cout << "Pilih Kecamatan: ";
+            getline(cin, input);
+
+            Kecamatan *kecamatan = kota.cariKecamatan(input);
+            if (kecamatan == nullptr)
+            {
+                cout << "Kecamatan tidak ditemukan!" << endl;
+                system("pause");
+                continue;
+            }
+
+            kelolaWilayahKelurahan(*kecamatan);
+            break;
+        }
+        case 3:
+            pilihDanKelolaRW(kota);
+            break;
+
+        case 4:
+            pilihDanKelolaRT(kota);
+            break;
+        case 5:
+            running = false;
+            break;
+        default:
+            cout << "Pilihan menu tidak valid!" << endl;
+            system("pause");
+            break;
+        }
+    }
+}
+
 int main()
 {
-    Wilayah wilayah("Kelurahan Caringin");
-    wilayah.tambahRt(RT("RT 01"));
-    wilayah.tambahRt(RT("RT 02"));
-    wilayah.tambahRt(RT("RT 03"));
+    Kota kota("Bandung");
+    Kecamatan kecamatan("Bubat");
+    Kelurahan kelurahan("Caringin");
+    RW rw("01");
 
-    wilayah.rtList[0].tambahWarga(Warga{"Asep", 19, 20000, "Bukan", "Jl. Caringin No. 2", "Prioritas"});
-    wilayah.rtList[0].tambahWarga(Warga{"Budin", 17, 10000, "Yatim", "Jl. Caringin No. 3", "Prioritas"});
-    wilayah.rtList[1].tambahWarga(Warga{"Cecep", 68, 10000, "Yatim", "Jl. Amba No. 3", "Prioritas"});
-    wilayah.rtList[1].tambahWarga(Warga{"Doni", 24, 1000000, "Yatim", "Jl. Amba No. 2", "Reguler"});
-    wilayah.rtList[2].tambahWarga(Warga{"Edi", 35, 10000, "Yatim", "Jl. Nigerian No. 1", "Prioritas"});
-    wilayah.rtList[2].tambahWarga(Warga{"Feri", 18, 10000, "Bukan", "Jl. Nigerian No. 2", "Prioritas"});
+    rw.tambahRT(RT("RT 01"));
+    rw.tambahRT(RT("RT 02"));
+    rw.tambahRT(RT("RT 03"));
+
+    RT *rt1 = rw.cariRT("RT 01");
+    RT *rt2 = rw.cariRT("RT 02");
+    RT *rt3 = rw.cariRT("RT 03");
+
+    if (rt1)
+    {
+        rt1->tambahWarga(Warga{"3201012000010001", "Asep", 19, 20000, "Bukan", "Jl. Caringin No. 2", "Prioritas"});
+        rt1->tambahWarga(Warga{"3201012000010002", "Budin", 17, 10000, "Yatim", "Jl. Caringin No. 3", "Prioritas"});
+    }
+
+    if (rt2)
+    {
+        rt2->tambahWarga(Warga{"3201012000010003", "Cecep", 68, 10000, "Yatim", "Jl. Amba No. 3", "Prioritas"});
+        rt2->tambahWarga(Warga{"3201012000010004", "Doni", 24, 1000000, "Yatim", "Jl. Amba No. 2", "Reguler"});
+    }
+
+    if (rt3)
+    {
+        rt3->tambahWarga(Warga{"3201012000010005", "Edi", 35, 10000, "Yatim", "Jl. Nigerian No. 1", "Prioritas"});
+        rt3->tambahWarga(Warga{"3201012000010006", "Feri", 18, 10000, "Bukan", "Jl. Nigerian No. 2", "Prioritas"});
+    }
+
+    kelurahan.tambahRW(rw);
+    kecamatan.tambahKelurahan(kelurahan);
+    kota.tambahKecamatan(kecamatan);
 
     bool running = true;
     while (running)
     {
         system("cls");
         cout << "====== APLIKASI PENDATAAN BANSOS ======" << endl;
-        cout << "Wilayah: " << wilayah.nama << endl
+        cout << "Wilayah: " << rw.nama << endl
              << endl;
         cout << "1. Kelola Data Warga" << endl;
         cout << "2. Daftarkan Bantuan untuk Warga" << endl;
@@ -1535,27 +2452,27 @@ int main()
         switch (pilihan)
         {
         case 1:
-            kelolaWarga(wilayah);
+            kelolaWarga(rw);
             break;
         case 2:
-            menuDataWargaDanBantuan(wilayah);
+            menuDataWargaDanBantuan(rw);
             break;
         case 3:
             system("cls");
             cout << "====== ANTRIAN PENERIMA BANTUAN ======" << endl;
-            buatAntrianDariWarga(wilayah);
+            // buatAntrianDariWarga(rw);
             displayQueue(antrianPrioritas, "Antrian Prioritas");
             cout << endl;
             displayQueue(antrianReguler, "Antrian Reguler");
             break;
         case 4:
-            lihatRiwayatPerubahan(wilayah);
+            lihatRiwayatPerubahan(rw);
             break;
         case 5:
-            kelolaWilayah(wilayah);
+            kelolaWilayah(kota);
             break;
         case 6:
-            statistikBantuanPerRT(wilayah);
+            // statistikBantuanPerRT(rw);
             break;
         case 7:
             cout << "Happy Nice Day!" << endl;
