@@ -315,7 +315,8 @@ struct RW
 
     void tampilkanRiwayat() const
     {
-        if (riwayatPerubahan.empty()) {
+        if (riwayatPerubahan.empty())
+        {
             cout << "Tidak ada riwayat perubahan data." << endl;
             return;
         }
@@ -323,29 +324,34 @@ struct RW
         stack<PerubahanData> tempStack = riwayatPerubahan;
         vector<PerubahanData> riwayatTerbalik;
 
-        while (!tempStack.empty()) {
+        while (!tempStack.empty())
+        {
             riwayatTerbalik.push_back(tempStack.top());
             tempStack.pop();
         }
 
         cout << "Riwayat Perubahan Data:" << endl;
-        for (auto it = riwayatTerbalik.rbegin(); it != riwayatTerbalik.rend(); ++it) {
+        for (auto it = riwayatTerbalik.rbegin(); it != riwayatTerbalik.rend(); ++it)
+        {
             const auto &perubahan = *it;
             cout << "  Waktu: " << perubahan.waktu;
             cout << "  RT: " << perubahan.rt << endl;
-            cout << "  NIK Warga: " << perubahan.nikWarga << endl;  // Tampilkan NIK
+            cout << "  NIK Warga: " << perubahan.nikWarga << endl; // Tampilkan NIK
             cout << "  Nama Warga: " << perubahan.namaWarga << endl;
             cout << "  Aksi: " << perubahan.aksi << endl;
 
-            if (perubahan.aksi == "EDIT") {
+            if (perubahan.aksi == "EDIT")
+            {
                 cout << "  Field yang diubah: " << perubahan.fieldDiubah << endl;
                 cout << "  Data Lama: " << perubahan.nilaiLama << endl;
                 cout << "  Data Baru: " << perubahan.nilaiBaru << endl;
             }
-            else if (perubahan.aksi == "HAPUS") {
+            else if (perubahan.aksi == "HAPUS")
+            {
                 cout << "  Data dihapus" << endl;
             }
-            else if (perubahan.aksi == "TAMBAH") {
+            else if (perubahan.aksi == "TAMBAH")
+            {
                 cout << "  Data baru ditambahkan" << endl;
                 cout << "  Kategori: " << perubahan.nilaiBaru << endl;
             }
@@ -370,11 +376,11 @@ struct RW
     {
         if (root == nullptr)
         {
-            cout << "  Tidak ada RT terdaftar di RW " << nama << endl;
+            cout << "  Tidak ada RT terdaftar di " << nama << endl;
             return;
         }
 
-        cout << "  Daftar RT di RW " << nama << ":" << endl;
+        cout << "  Daftar RT di " << nama << ":" << endl;
         int counter = 1;
         inOrderTraversal(root, counter);
     }
@@ -857,7 +863,7 @@ void inputDataWarga(RW &rw)
             time_t now = time(0);
             perubahan.waktu = ctime(&now);
             perubahan.rt = rtTerpilih.nama;
-            perubahan.nikWarga = wargaBaru.nik; 
+            perubahan.nikWarga = wargaBaru.nik;
             perubahan.namaWarga = wargaBaru.nama;
             perubahan.aksi = "TAMBAH";
             perubahan.nilaiLama = "-";
@@ -1027,7 +1033,7 @@ void editDataWarga(RW &rw)
                 time_t now = time(0);
                 perubahan.waktu = ctime(&now);
                 perubahan.rt = rtTerpilih.nama;
-                perubahan.nikWarga = wargaTerpilih.nik; 
+                perubahan.nikWarga = wargaTerpilih.nik;
                 perubahan.namaWarga = namaBaru;
                 perubahan.aksi = "EDIT";
                 perubahan.fieldDiubah = "Nama";
@@ -1063,7 +1069,7 @@ void editDataWarga(RW &rw)
                 time_t now = time(0);
                 perubahan.waktu = ctime(&now);
                 perubahan.rt = rtTerpilih.nama;
-                perubahan.nikWarga = wargaTerpilih.nik; 
+                perubahan.nikWarga = wargaTerpilih.nik;
                 perubahan.namaWarga = wargaTerpilih.nama;
                 perubahan.aksi = "EDIT";
                 perubahan.fieldDiubah = "Umur";
@@ -1099,7 +1105,7 @@ void editDataWarga(RW &rw)
                 time_t now = time(0);
                 perubahan.waktu = ctime(&now);
                 perubahan.rt = rtTerpilih.nama;
-                perubahan.nikWarga = wargaTerpilih.nik; 
+                perubahan.nikWarga = wargaTerpilih.nik;
                 perubahan.namaWarga = wargaTerpilih.nama;
                 perubahan.aksi = "EDIT";
                 perubahan.fieldDiubah = "Penghasilan";
@@ -1148,7 +1154,7 @@ void editDataWarga(RW &rw)
                 time_t now = time(0);
                 perubahan.waktu = ctime(&now);
                 perubahan.rt = rtTerpilih.nama;
-                perubahan.nikWarga = wargaTerpilih.nik; 
+                perubahan.nikWarga = wargaTerpilih.nik;
                 perubahan.namaWarga = wargaTerpilih.nama;
                 perubahan.aksi = "EDIT";
                 perubahan.fieldDiubah = "Status Keluarga";
@@ -1178,7 +1184,7 @@ void editDataWarga(RW &rw)
                 time_t now = time(0);
                 perubahan.waktu = ctime(&now);
                 perubahan.rt = rtTerpilih.nama;
-                perubahan.nikWarga = wargaTerpilih.nik; 
+                perubahan.nikWarga = wargaTerpilih.nik;
                 perubahan.namaWarga = wargaTerpilih.nama;
                 perubahan.aksi = "EDIT";
                 perubahan.fieldDiubah = "Alamat";
@@ -1334,7 +1340,7 @@ void hapusDataWarga(RW &rw)
             time_t now = time(0);
             perubahan.waktu = ctime(&now);
             perubahan.rt = rtTerpilih.nama;
-            perubahan.nikWarga = wargaTerpilih.nik; 
+            perubahan.nikWarga = wargaTerpilih.nik;
             perubahan.namaWarga = wargaTerpilih.nama;
             perubahan.aksi = "HAPUS";
             perubahan.fieldDiubah = "Semua Data";
@@ -2671,6 +2677,87 @@ void kelolaWilayah(Kota &kota)
     }
 }
 
+void pilihKelolaWarga(Kota &kota)
+{
+    system("cls");
+    kota.tampilkanKecamatan();
+
+    cout << "Masukkan nama kecamatan: ";
+    string namaKec;
+    getline(cin, namaKec);
+
+    Kecamatan *kec = nullptr;
+    function<void(PentaTreeNode *)> cariKec = [&](PentaTreeNode *node)
+    {
+        if (!node)
+            return;
+        cariKec(node->left);
+        if (toLower(node->data.nama) == toLower(namaKec))
+            kec = &node->data;
+        cariKec(node->right);
+    };
+    cariKec(kota.root);
+
+    if (!kec)
+    {
+        cout << "Kecamatan tidak ditemukan!" << endl;
+        system("pause");
+        return;
+    }
+
+    system("cls");
+    kec->tampilkanKelurahan();
+    cout << "Masukkan nama kelurahan: ";
+    string namaKel;
+    getline(cin, namaKel);
+
+    Kelurahan *kel = nullptr;
+    function<void(QuadTreeNode *)> cariKel = [&](QuadTreeNode *node)
+    {
+        if (!node)
+            return;
+        cariKel(node->left);
+        if (toLower(node->data.nama) == toLower(namaKel))
+            kel = &node->data;
+        cariKel(node->right);
+    };
+    cariKel(kec->root);
+
+    if (!kel)
+    {
+        cout << "Kelurahan tidak ditemukan!" << endl;
+        system("pause");
+        return;
+    }
+
+    system("cls");
+    kel->tampilkanRW();
+    cout << "Masukkan nama RW: ";
+    string namaRW;
+    getline(cin, namaRW);
+
+    RW *rw = nullptr;
+    function<void(ThirdTreeNode *)> cariRW = [&](ThirdTreeNode *node)
+    {
+        if (!node)
+            return;
+        cariRW(node->left);
+        if (toLower(node->data.nama) == toLower(formatWilayah(namaRW, "RW")))
+            rw = &node->data;
+        cariRW(node->right);
+    };
+    cariRW(kel->root);
+
+    if (!rw)
+    {
+        cout << "RW tidak ditemukan!" << endl;
+        system("pause");
+        return;
+    }
+
+    kelolaWarga(*rw);
+}
+
 int main()
 {
     Kota kota("Bandung");
@@ -2757,7 +2844,7 @@ int main()
         switch (pilihan)
         {
         case 1:
-            kelolaWarga(rw);
+            pilihKelolaWarga(kota);
             break;
         case 2:
             menuDataWargaDanBantuan(kota);
