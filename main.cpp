@@ -1477,50 +1477,7 @@ void displayQueue(const Queue &q, const string &label)
     }
 }
 
-void buatAntrianDariWarga(const RW &rw)
-{
-    createQueue(antrianPrioritas);
-    createQueue(antrianReguler);
 
-    // Fungsi untuk menelusuri seluruh RT dalam tree (SecTreeNode)
-    function<void(SecTreeNode *)> traverseRTTree;
-    traverseRTTree = [&](SecTreeNode *node)
-    {
-        if (!node)
-            return;
-
-        traverseRTTree(node->left);
-
-        // Traversal pohon warga dalam RT (TreeNode*)
-        function<void(TreeNode *)> traverseWarga;
-        traverseWarga = [&](TreeNode *wargaNode)
-        {
-            if (!wargaNode)
-                return;
-            traverseWarga(wargaNode->left);
-
-            string nama = wargaNode->data.nama;
-            string kategori = wargaNode->data.kategori;
-
-            if (kategori == "Prioritas")
-                insertQueue(antrianPrioritas, nama);
-            else
-                insertQueue(antrianReguler, nama);
-
-            traverseWarga(wargaNode->right);
-        };
-
-        // Akses root pohon warga dari RT ini
-        traverseWarga(node->data.root);
-
-        traverseRTTree(node->right);
-    };
-
-    // Mulai traversal dari root RW
-    traverseRTTree(rw.root);
-
-    cout << "Antrian berhasil dibuat dari data warga!" << endl;
-}
 
 string toLower(const string &str)
 {
@@ -2758,6 +2715,140 @@ void pilihKelolaWarga(Kota &kota)
     kelolaWarga(*rw);
 }
 
+
+void buatAntrianDariWarga(const RW &rw)
+{
+    createQueue(antrianPrioritas);
+    createQueue(antrianReguler);
+
+    // Fungsi untuk menelusuri seluruh RT dalam tree (SecTreeNode)
+    function<void(SecTreeNode *)> traverseRTTree;
+    traverseRTTree = [&](SecTreeNode *node)
+    {
+        if (!node)
+            return;
+
+        traverseRTTree(node->left);
+
+        // Traversal pohon warga dalam RT (TreeNode*)
+        function<void(TreeNode *)> traverseWarga;
+        traverseWarga = [&](TreeNode *wargaNode)
+        {
+            if (!wargaNode)
+                return;
+            traverseWarga(wargaNode->left);
+
+            string nama = wargaNode->data.nama;
+            string kategori = wargaNode->data.kategori;
+
+            if (kategori == "Prioritas")
+                insertQueue(antrianPrioritas, nama);
+            else
+                insertQueue(antrianReguler, nama);
+
+            traverseWarga(wargaNode->right);
+        };
+
+        // Akses root pohon warga dari RT ini
+        traverseWarga(node->data.root);
+
+        traverseRTTree(node->right);
+    };
+
+    // Mulai traversal dari root RW
+    traverseRTTree(rw.root);
+
+    cout << "Antrian berhasil dibuat dari data warga!" << endl;
+}
+
+void pilihKelolaAntrian(Kota &kota)
+{
+    system("cls");
+    kota.tampilkanKecamatan();
+
+    cout << "Masukkan nama kecamatan: ";
+    string namaKec;
+    getline(cin, namaKec);
+
+    Kecamatan *kec = nullptr;
+    function<void(PentaTreeNode *)> cariKec = [&](PentaTreeNode *node)
+    {
+        if (!node)
+            return;
+        cariKec(node->left);
+        if (toLower(node->data.nama) == toLower(namaKec))
+            kec = &node->data;
+        cariKec(node->right);
+    };
+    cariKec(kota.root);
+
+    if (!kec)
+    {
+        cout << "Kecamatan tidak ditemukan!" << endl;
+        system("pause");
+        return;
+    }
+
+    system("cls");
+    kec->tampilkanKelurahan();
+    cout << "Masukkan nama kelurahan: ";
+    string namaKel;
+    getline(cin, namaKel);
+
+    Kelurahan *kel = nullptr;
+    function<void(QuadTreeNode *)> cariKel = [&](QuadTreeNode *node)
+    {
+        if (!node)
+            return;
+        cariKel(node->left);
+        if (toLower(node->data.nama) == toLower(namaKel))
+            kel = &node->data;
+        cariKel(node->right);
+    };
+    cariKel(kec->root);
+
+    if (!kel)
+    {
+        cout << "Kelurahan tidak ditemukan!" << endl;
+        system("pause");
+        return;
+    }
+
+    system("cls");
+    kel->tampilkanRW();
+    cout << "Masukkan nama RW: ";
+    string namaRW;
+    getline(cin, namaRW);
+
+    RW *rw = nullptr;
+    function<void(ThirdTreeNode *)> cariRW = [&](ThirdTreeNode *node)
+    {
+        if (!node)
+            return;
+        cariRW(node->left);
+        if (toLower(node->data.nama) == toLower(formatWilayah(namaRW, "RW")))
+            rw = &node->data;
+        cariRW(node->right);
+    };
+    cariRW(kel->root);
+
+    if (!rw)
+    {
+        cout << "RW tidak ditemukan!" << endl;
+        system("pause");
+        return;
+    }
+
+    // ====== Bagian yang kamu minta dipindah ======
+    system("cls");
+    cout << "====== ANTRIAN PENERIMA BANTUAN ======" << endl;
+    buatAntrianDariWarga(*rw);
+    displayQueue(antrianPrioritas, "Antrian Prioritas");
+    cout << endl;
+    displayQueue(antrianReguler, "Antrian Reguler");
+
+}
+
 int main()
 {
     Kota kota("Bandung");
@@ -2850,12 +2941,7 @@ int main()
             menuDataWargaDanBantuan(kota);
             break;
         case 3:
-            system("cls");
-            cout << "====== ANTRIAN PENERIMA BANTUAN ======" << endl;
-            buatAntrianDariWarga(rw);
-            displayQueue(antrianPrioritas, "Antrian Prioritas");
-            cout << endl;
-            displayQueue(antrianReguler, "Antrian Reguler");
+            pilihKelolaAntrian(kota);
             break;
         case 4:
             lihatRiwayatPerubahan(rw);
