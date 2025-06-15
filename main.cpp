@@ -1837,7 +1837,16 @@ void statistikBantuanPerRW(Kota &kota)
         if (inputKec == "0")
             return;
 
-        kec = kota.cariKecamatan(inputKec);
+        function<void(PentaTreeNode *)> cariKec = [&](PentaTreeNode *node)
+        {
+            if (!node)
+                return;
+            cariKec(node->left);
+            if (toLower(node->data.nama) == toLower(inputKec))
+                kec = &node->data;
+            cariKec(node->right);
+        };
+        cariKec(kota.root);
         if (!kec)
         {
             cout << "Kecamatan tidak ditemukan. Coba lagi.\n";
@@ -1860,7 +1869,16 @@ void statistikBantuanPerRW(Kota &kota)
         if (inputKel == "0")
             return;
 
-        kel = kec->cariKelurahan(inputKel);
+        function<void(QuadTreeNode *)> cariKel = [&](QuadTreeNode *node)
+        {
+            if (!node)
+                return;
+            cariKel(node->left);
+            if (toLower(node->data.nama) == toLower(inputKel))
+                kel = &node->data;
+            cariKel(node->right);
+        };
+        cariKel(kec->root);
         if (!kel)
         {
             cout << "Kelurahan tidak ditemukan. Coba lagi.\n";
@@ -2422,7 +2440,18 @@ void pilihDanKelolaRT(Kota &kota)
     string namaKec;
     getline(cin, namaKec);
 
-    Kecamatan *kec = kota.cariKecamatan(namaKec);
+    // Pencarian case-insensitive untuk Kecamatan
+    Kecamatan *kec = nullptr;
+    function<void(PentaTreeNode *)> cariKec = [&](PentaTreeNode *node)
+    {
+        if (!node)
+            return;
+        cariKec(node->left);
+        if (toLower(node->data.nama) == toLower(namaKec))
+            kec = &node->data;
+        cariKec(node->right);
+    };
+    cariKec(kota.root);
 
     if (!kec)
     {
@@ -2431,12 +2460,24 @@ void pilihDanKelolaRT(Kota &kota)
         return;
     }
 
+    system("cls");
     kec->tampilkanKelurahan();
     cout << "Masukkan nama kelurahan: ";
     string namaKel;
     getline(cin, namaKel);
 
-    Kelurahan *kel = kec->cariKelurahan(namaKel);
+    // Pencarian case-insensitive untuk Kelurahan
+    Kelurahan *kel = nullptr;
+    function<void(QuadTreeNode *)> cariKel = [&](QuadTreeNode *node)
+    {
+        if (!node)
+            return;
+        cariKel(node->left);
+        if (toLower(node->data.nama) == toLower(namaKel))
+            kel = &node->data;
+        cariKel(node->right);
+    };
+    cariKel(kec->root);
 
     if (!kel)
     {
@@ -2445,17 +2486,32 @@ void pilihDanKelolaRT(Kota &kota)
         return;
     }
 
+    system("cls");
     kel->tampilkanRW();
     cout << "Masukkan nama RW: ";
     string namaRW;
     getline(cin, namaRW);
-    RW *rw = kel->cariRW(namaRW);
+
+    // Pencarian case-insensitive untuk RW
+    RW *rw = nullptr;
+    function<void(ThirdTreeNode *)> cariRW = [&](ThirdTreeNode *node)
+    {
+        if (!node)
+            return;
+        cariRW(node->left);
+        if (toLower(node->data.nama) == toLower(formatWilayah(namaRW, "RW")))
+            rw = &node->data;
+        cariRW(node->right);
+    };
+    cariRW(kel->root);
+
     if (!rw)
     {
         cout << "RW tidak ditemukan!" << endl;
         system("pause");
         return;
     }
+
     kelolaWilayahRT(*rw);
 }
 
@@ -2468,7 +2524,18 @@ void pilihDanKelolaRW(Kota &kota)
     string namaKec;
     getline(cin, namaKec);
 
-    Kecamatan *kec = kota.cariKecamatan(namaKec);
+    // Cari Kecamatan secara manual (case-insensitive)
+    Kecamatan *kec = nullptr;
+    function<void(PentaTreeNode *)> cariKec = [&](PentaTreeNode *node)
+    {
+        if (!node)
+            return;
+        cariKec(node->left);
+        if (toLower(node->data.nama) == toLower(namaKec))
+            kec = &node->data;
+        cariKec(node->right);
+    };
+    cariKec(kota.root);
 
     if (!kec)
     {
@@ -2477,13 +2544,25 @@ void pilihDanKelolaRW(Kota &kota)
         return;
     }
 
+    system("cls");
     kec->tampilkanKelurahan();
 
     cout << "Masukkan nama kelurahan: ";
     string namaKel;
     getline(cin, namaKel);
 
-    Kelurahan *kel = kec->cariKelurahan(namaKel);
+    // Cari Kelurahan secara manual (case-insensitive)
+    Kelurahan *kel = nullptr;
+    function<void(QuadTreeNode *)> cariKel = [&](QuadTreeNode *node)
+    {
+        if (!node)
+            return;
+        cariKel(node->left);
+        if (toLower(node->data.nama) == toLower(namaKel))
+            kel = &node->data;
+        cariKel(node->right);
+    };
+    cariKel(kec->root);
 
     if (!kel)
     {
@@ -2535,8 +2614,19 @@ void kelolaWilayah(Kota &kota)
             cout << "Pilih Kecamatan: ";
             getline(cin, input);
 
-            Kecamatan *kecamatan = kota.cariKecamatan(input);
-            if (kecamatan == nullptr)
+            Kecamatan *kecamatan = nullptr;
+            function<void(PentaTreeNode *)> cariKec = [&](PentaTreeNode *node)
+            {
+                if (!node)
+                    return;
+                cariKec(node->left);
+                if (toLower(node->data.nama) == toLower(input))
+                    kecamatan = &node->data;
+                cariKec(node->right);
+            };
+            cariKec(kota.root);
+
+            if (!kecamatan)
             {
                 cout << "Kecamatan tidak ditemukan!" << endl;
                 system("pause");
