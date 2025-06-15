@@ -1471,39 +1471,50 @@ void displayQueue(const Queue &q, const string &label)
     }
 }
 
-// void buatAntrianDariWarga(const RW &rw)
-// {
-//     createQueue(antrianPrioritas);
-//     createQueue(antrianReguler);
+void buatAntrianDariWarga(const RW &rw)
+{
+    createQueue(antrianPrioritas);
+    createQueue(antrianReguler);
 
-//     for (const auto &rt : rw.rtList)
-//     {
-//         function<void(TreeNode *)> traverse;
-//         traverse = [&](TreeNode *node)
-//         {
-//             if (!node)
-//                 return;
-//             traverse(node->left);
+    // Fungsi untuk menelusuri seluruh RT dalam tree (SecTreeNode)
+    function<void(SecTreeNode *)> traverseRTTree;
+    traverseRTTree = [&](SecTreeNode *node)
+    {
+        if (!node)
+            return;
 
-//             string nama = node->data.nama;
-//             string kategori = node->data.kategori;
+        traverseRTTree(node->left);
 
-//             if (kategori == "Prioritas")
-//             {
-//                 insertQueue(antrianPrioritas, nama);
-//             }
-//             else
-//             {
-//                 insertQueue(antrianReguler, nama);
-//             }
+        // Traversal pohon warga dalam RT (TreeNode*)
+        function<void(TreeNode *)> traverseWarga;
+        traverseWarga = [&](TreeNode *wargaNode)
+        {
+            if (!wargaNode)
+                return;
+            traverseWarga(wargaNode->left);
 
-//             traverse(node->right);
-//         };
-//         traverse(rt.root);
-//     }
+            string nama = wargaNode->data.nama;
+            string kategori = wargaNode->data.kategori;
 
-//     cout << "Antrian berhasil dibuat dari data warga!" << endl;
-// }
+            if (kategori == "Prioritas")
+                insertQueue(antrianPrioritas, nama);
+            else
+                insertQueue(antrianReguler, nama);
+
+            traverseWarga(wargaNode->right);
+        };
+
+        // Akses root pohon warga dari RT ini
+        traverseWarga(node->data.root);
+
+        traverseRTTree(node->right);
+    };
+
+    // Mulai traversal dari root RW
+    traverseRTTree(rw.root);
+
+    cout << "Antrian berhasil dibuat dari data warga!" << endl;
+}
 
 string toLower(const string &str)
 {
@@ -2754,7 +2765,7 @@ int main()
         case 3:
             system("cls");
             cout << "====== ANTRIAN PENERIMA BANTUAN ======" << endl;
-            // buatAntrianDariWarga(rw);
+            buatAntrianDariWarga(rw);
             displayQueue(antrianPrioritas, "Antrian Prioritas");
             cout << endl;
             displayQueue(antrianReguler, "Antrian Reguler");
