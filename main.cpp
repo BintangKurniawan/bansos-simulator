@@ -51,6 +51,7 @@ struct PerubahanData
 {
     string waktu;
     string rt;
+    string nikWarga;
     string namaWarga;
     string fieldDiubah;
     string nilaiLama;
@@ -314,8 +315,7 @@ struct RW
 
     void tampilkanRiwayat() const
     {
-        if (riwayatPerubahan.empty())
-        {
+        if (riwayatPerubahan.empty()) {
             cout << "Tidak ada riwayat perubahan data." << endl;
             return;
         }
@@ -323,32 +323,31 @@ struct RW
         stack<PerubahanData> tempStack = riwayatPerubahan;
         vector<PerubahanData> riwayatTerbalik;
 
-        while (!tempStack.empty())
-        {
+        while (!tempStack.empty()) {
             riwayatTerbalik.push_back(tempStack.top());
             tempStack.pop();
         }
 
         cout << "Riwayat Perubahan Data:" << endl;
-        for (auto it = riwayatTerbalik.rbegin(); it != riwayatTerbalik.rend(); ++it)
-        {
+        for (auto it = riwayatTerbalik.rbegin(); it != riwayatTerbalik.rend(); ++it) {
             const auto &perubahan = *it;
-            cout << "  Waktu: " << perubahan.waktu << endl;
+            cout << "  Waktu: " << perubahan.waktu;
             cout << "  RT: " << perubahan.rt << endl;
+            cout << "  NIK Warga: " << perubahan.nikWarga << endl;  // Tampilkan NIK
             cout << "  Nama Warga: " << perubahan.namaWarga << endl;
             cout << "  Aksi: " << perubahan.aksi << endl;
 
-            if (perubahan.aksi == "EDIT")
-            {
+            if (perubahan.aksi == "EDIT") {
                 cout << "  Field yang diubah: " << perubahan.fieldDiubah << endl;
                 cout << "  Data Lama: " << perubahan.nilaiLama << endl;
                 cout << "  Data Baru: " << perubahan.nilaiBaru << endl;
             }
-            else if (perubahan.aksi == "HAPUS")
-            {
+            else if (perubahan.aksi == "HAPUS") {
                 cout << "  Data dihapus" << endl;
-                cout << "  Data Lama: " << perubahan.nilaiLama << endl;
-                cout << "  Data Baru: " << perubahan.nilaiBaru << endl;
+            }
+            else if (perubahan.aksi == "TAMBAH") {
+                cout << "  Data baru ditambahkan" << endl;
+                cout << "  Kategori: " << perubahan.nilaiBaru << endl;
             }
 
             cout << "  ------------------------" << endl;
@@ -858,6 +857,7 @@ void inputDataWarga(RW &rw)
             time_t now = time(0);
             perubahan.waktu = ctime(&now);
             perubahan.rt = rtTerpilih.nama;
+            perubahan.nikWarga = wargaBaru.nik; 
             perubahan.namaWarga = wargaBaru.nama;
             perubahan.aksi = "TAMBAH";
             perubahan.nilaiLama = "-";
@@ -1027,6 +1027,7 @@ void editDataWarga(RW &rw)
                 time_t now = time(0);
                 perubahan.waktu = ctime(&now);
                 perubahan.rt = rtTerpilih.nama;
+                perubahan.nikWarga = wargaTerpilih.nik; 
                 perubahan.namaWarga = namaBaru;
                 perubahan.aksi = "EDIT";
                 perubahan.fieldDiubah = "Nama";
@@ -1062,6 +1063,7 @@ void editDataWarga(RW &rw)
                 time_t now = time(0);
                 perubahan.waktu = ctime(&now);
                 perubahan.rt = rtTerpilih.nama;
+                perubahan.nikWarga = wargaTerpilih.nik; 
                 perubahan.namaWarga = wargaTerpilih.nama;
                 perubahan.aksi = "EDIT";
                 perubahan.fieldDiubah = "Umur";
@@ -1097,6 +1099,7 @@ void editDataWarga(RW &rw)
                 time_t now = time(0);
                 perubahan.waktu = ctime(&now);
                 perubahan.rt = rtTerpilih.nama;
+                perubahan.nikWarga = wargaTerpilih.nik; 
                 perubahan.namaWarga = wargaTerpilih.nama;
                 perubahan.aksi = "EDIT";
                 perubahan.fieldDiubah = "Penghasilan";
@@ -1145,6 +1148,7 @@ void editDataWarga(RW &rw)
                 time_t now = time(0);
                 perubahan.waktu = ctime(&now);
                 perubahan.rt = rtTerpilih.nama;
+                perubahan.nikWarga = wargaTerpilih.nik; 
                 perubahan.namaWarga = wargaTerpilih.nama;
                 perubahan.aksi = "EDIT";
                 perubahan.fieldDiubah = "Status Keluarga";
@@ -1174,6 +1178,7 @@ void editDataWarga(RW &rw)
                 time_t now = time(0);
                 perubahan.waktu = ctime(&now);
                 perubahan.rt = rtTerpilih.nama;
+                perubahan.nikWarga = wargaTerpilih.nik; 
                 perubahan.namaWarga = wargaTerpilih.nama;
                 perubahan.aksi = "EDIT";
                 perubahan.fieldDiubah = "Alamat";
@@ -1329,6 +1334,7 @@ void hapusDataWarga(RW &rw)
             time_t now = time(0);
             perubahan.waktu = ctime(&now);
             perubahan.rt = rtTerpilih.nama;
+            perubahan.nikWarga = wargaTerpilih.nik; 
             perubahan.namaWarga = wargaTerpilih.nama;
             perubahan.aksi = "HAPUS";
             perubahan.fieldDiubah = "Semua Data";
